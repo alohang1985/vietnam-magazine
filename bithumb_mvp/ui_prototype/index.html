@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Bithumb-style Trade Prototype</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="market">BTC / KRW</div>
+      <div class="ticker">Last: <span id="last">-</span></div>
+      <div id="status" style="margin-left:12px;color:var(--muted);font-size:13px">Status: 초기화</div>
+    </header>
+    <main class="layout">
+      <section class="chart">
+        <div class="chart-header">차트</div>
+        <div id="chart"></div>
+      </section>
+      <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.1.0/dist/lightweight-charts.standalone.production.js"></script>
+      <aside class="orderbook">
+        <div class="orderbook-header">호가 (매도 / 매수)</div>
+        <div class="asks" id="asks"></div>
+        <div class="spread">Spread: <span id="spread">-</span></div>
+        <div class="bids" id="bids"></div>
+      </aside>
+      <aside class="orderpanel">
+        <div class="orderpanel-header">주문 패널</div>
+        <div class="order-tabs">
+          <button class="tab active">지정가</button>
+          <button class="tab">시장가</button>
+        </div>
+        <div class="order-form">
+          <label>가격 <input id="price" type="number"/></label>
+          <label>수량 <input id="qty" type="number"/></label>
+          <div class="quick">
+            <button data-pct="0.25">25%</button>
+            <button data-pct="0.5">50%</button>
+            <button data-pct="0.75">75%</button>
+            <button data-pct="1">100%</button>
+          </div>
+          <div class="order-actions">
+            <button id="buy" class="buy">매수</button>
+            <button id="sell" class="sell">매도</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+    <section class="trades">
+      <div class="trades-header">최근 체결</div>
+      <div id="trades"></div>
+    </section>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

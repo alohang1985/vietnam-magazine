@@ -1,0 +1,2 @@
+youngdonjang     22247   0.5  1.0 412663872 171184   ??  SN   10:31AM   7:58.86 node server.js
+youngdonjang     89564   0.0  0.0 410593248   1264   ??  S     8:11PM   0:00.00 egrep fetch_bithumb.py|node server.js

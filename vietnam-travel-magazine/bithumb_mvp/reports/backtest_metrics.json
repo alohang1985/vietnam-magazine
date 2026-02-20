@@ -1,0 +1,24 @@
+{
+  "aggressive": {
+    "initial": 3000000,
+    "final_value": 2982716.1267643864,
+    "returns": -17283.873235613573,
+    "total_trades": 2,
+    "total_sells": 2,
+    "wins": 0,
+    "win_rate_pct": 0.0,
+    "profit_factor": 0.0,
+    "max_drawdown_pct": 50.14
+  },
+  "conservative": {
+    "initial": 3000000,
+    "final_value": 2993846.736546868,
+    "returns": -1499996.625,
+    "total_trades": 0,
+    "total_sells": 0,
+    "wins": 0,
+    "win_rate_pct": 0,
+    "profit_factor": 0,
+    "max_drawdown_pct": 50.0
+  }
+}

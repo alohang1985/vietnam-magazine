@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>ai.jarvis.dashboard-api</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/youngdonjang/.openclaw/workspace/dashboard-api/server.js</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/youngdonjang/.openclaw/workspace/dashboard-api</string>
+  <key>StandardOutPath</key>
+  <string>/Users/youngdonjang/logs/dashboard-api.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/youngdonjang/logs/dashboard-api.err.log</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+</dict>
+</plist>

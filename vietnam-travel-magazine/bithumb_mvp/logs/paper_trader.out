@@ -1,0 +1,2 @@
+/Users/youngdonjang/.openclaw/workspace/bithumb_mvp/paper_trader.py:40: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  entry = {'ts': datetime.datetime.utcnow().isoformat(), 'pair':pair, 'side':'buy','price':price,'qty':qty,'cash':self.cash}

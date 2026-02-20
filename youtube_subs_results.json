@@ -1,0 +1,52 @@
+[
+  {
+    "name": "생활코딩",
+    "url": "https://www.youtube.com/@coohde",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "드림코딩 by 엘리",
+    "url": "https://www.youtube.com/@DreamCoding",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "노마드코더",
+    "url": "https://www.youtube.com/@nomadcoders",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "나도코딩",
+    "url": "https://www.youtube.com/@nadocoding",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "코딩애플",
+    "url": "https://www.youtube.com/@codingapple",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "김왼손",
+    "url": "https://www.youtube.com/results?search_query=%EA%B9%80%EC%99%BC%EC%86%90",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "조코딩",
+    "url": "https://www.youtube.com/@joCoding",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "코드잇",
+    "url": "https://www.youtube.com/@codeitkr",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "개발바닥",
+    "url": "https://www.youtube.com/@devbadak",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  },
+  {
+    "name": "토비의 스프링",
+    "url": "https://www.youtube.com/user/toby",
+    "subs": "ERROR: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"yt-formatted-string#subscriber-count, span.yt-subscription-button-subscriber-count\") to be visible\n"
+  }
+]

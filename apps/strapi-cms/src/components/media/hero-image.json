@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_media_hero_images",
+  "info": { "displayName": "hero-image" },
+  "attributes": {
+    "source": { "type": "enumeration", "enum": ["unsplash","pexels"] },
+    "url": { "type": "string" },
+    "photographer": { "type": "string" },
+    "license_url": { "type": "string" }
+  }
+}

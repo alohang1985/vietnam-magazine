@@ -1,0 +1,5 @@
+ALERT
+2026-02-18T22:13:00 PROBLEMS: (test)_dummy.csv invalid_close
+---
+2026-02-18T22:09:24 OK
+2026-02-18T22:13:00 PROBLEMS: (test)_dummy.csv invalid_close

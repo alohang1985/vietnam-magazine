@@ -1,0 +1,32 @@
+*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,'Helvetica Neue',Arial}
+:root{--bg:#0b1220;--panel:#0f1a26;--muted:#90a0b0;--accent:#00d27a;--danger:#ff4d6d}
+body{margin:0;background:linear-gradient(180deg,#07101a 0%,#061219 100%);color:#e6eef6}
+.topbar{display:flex;justify-content:space-between;padding:12px 20px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.03)}
+.layout{display:grid;grid-template-columns:1fr 320px 320px;gap:16px;padding:16px;align-items:start}
+.chart{background:var(--panel);padding:12px;border-radius:8px;min-height:360px}
+.chart-header{font-weight:600;margin-bottom:8px}
+#chart{height:320px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;color:var(--muted);overflow:hidden}
+.orderbook{background:var(--panel);padding:12px;border-radius:8px;height:360px;display:flex;flex-direction:column}
+.orderbook-header{font-weight:600;margin-bottom:6px}
+.asks,.bids{flex:1;overflow:auto;font-size:13px}
+.asks .row,.bids .row{display:flex;justify-content:space-between;padding:4px 6px;border-radius:4px}
+.asks .row{color:var(--danger);}
+.bids .row{color:var(--accent);}
+.spread{padding:6px 0;color:var(--muted);text-align:center}
+.orderpanel{background:var(--panel);padding:12px;border-radius:8px;height:360px;display:flex;flex-direction:column}
+.orderpanel-header{font-weight:600;margin-bottom:6px}
+.order-tabs{display:flex;gap:6px;margin-bottom:8px}
+.order-tabs .tab{flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--muted)}
+.order-tabs .tab.active{background:rgba(255,255,255,0.02);color:#fff}
+.order-form label{display:block;margin:8px 0;color:var(--muted)}
+.order-form input{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#fff}
+.quick{display:flex;gap:6px;margin:8px 0}
+.quick button{flex:1;padding:8px;border-radius:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+.order-actions{display:flex;gap:8px}
+.buy{flex:1;padding:10px;border-radius:6px;background:linear-gradient(90deg,var(--accent),#00b36a);border:none;color:#012;cursor:pointer}
+.sell{flex:1;padding:10px;border-radius:6px;background:linear-gradient(90deg,#ff6b7a,#ff4d6d);border:none;color:#100;cursor:pointer}
+.trades{padding:12px}
+.trades-header{font-weight:600;margin-bottom:6px}
+#trades,#asks,#bids{max-height:140px;overflow:auto}
+.row-small{display:flex;justify-content:space-between;padding:4px 6px}
+@media(max-width:1000px){.layout{grid-template-columns:1fr 260px;grid-auto-rows:minmax(200px,auto)}.orderpanel{grid-column:1/3}}

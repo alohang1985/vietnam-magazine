@@ -1,0 +1,1 @@
+2026-02-17T18:41:12.887072 FAST_FIX from paper_trades.csv.pre_rebuild.20260217181630.bak wrote /Users/youngdonjang/.openclaw/workspace/bithumb_mvp/logs/paper_trades.csv backup:/Users/youngdonjang/.openclaw/workspace/bithumb_mvp/logs/paper_trades.csv.bak_before_fastfix.20260217184112

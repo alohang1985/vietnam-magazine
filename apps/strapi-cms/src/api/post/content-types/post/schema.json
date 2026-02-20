@@ -1,0 +1,38 @@
+{
+  "collectionName": "posts",
+  "info": {
+    "singularName": "post",
+    "pluralName": "posts",
+    "displayName": "Post",
+    "description": "Magazine posts"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "title": { "type": "string", "required": true, "maxLength": 120 },
+    "slug": { "type": "uid", "targetField": "title" },
+    "category": { "type": "enumeration", "enum": ["phu-quoc","nha-trang","da-nang","ho-chi-minh","hanoi","ha-long","dalat","hoi-an","sapa","mui-ne","other"] },
+    "tags": { "type": "json" },
+    "status": { "type": "enumeration", "enum": ["draft","review","approved","rejected","published"], "default": "draft" },
+    "meta_title": { "type": "string", "maxLength": 60 },
+    "meta_description": { "type": "string", "maxLength": 160 },
+    "hero_image": {
+      "type": "component",
+      "repeatable": false,
+      "component": "media.hero-image"
+    },
+    "section_images": { "type": "json" },
+    "outline": { "type": "json" },
+    "article_markdown": { "type": "richtext" },
+    "summary_5lines": { "type": "text" },
+    "itinerary_blocks": { "type": "json" },
+    "budget_table": { "type": "json" },
+    "faq": { "type": "json" },
+    "sources": { "type": "json" },
+    "editor_note": { "type": "text" },
+    "published_at": { "type": "datetime" },
+    "publish_lock": { "type": "boolean", "default": false },
+    "lock_acquired_at": { "type": "datetime" }
+  }
+}

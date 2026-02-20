@@ -1,0 +1,5 @@
+('XRP_KRW_1m.csv', 'cleaned', 1441)
+('ETH_KRW_1m.csv', 'cleaned', 1441)
+('DOT_KRW_1m.csv', 'cleaned', 1441)
+('BTC_KRW_1m.csv', 'cleaned', 1441)
+('SOL_KRW_1m.csv', 'cleaned', 1441)

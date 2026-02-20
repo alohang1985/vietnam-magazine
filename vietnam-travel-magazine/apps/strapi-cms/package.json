@@ -1,0 +1,15 @@
+{
+  "name": "strapi-cms",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "seed": "node ./scripts/seed_posts.js",
+    "apply-schema": "node ./scripts/apply_schema.js"
+  },
+  "dependencies": {
+    "@strapi/strapi": "4.12.8"
+  }
+}

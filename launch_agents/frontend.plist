@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>ai.jarvis.frontend</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/youngdonjang/.npm/_npx/aab42732f01924e5/node_modules/.bin/serve</string>
+    <string>-s</string>
+    <string>/Users/youngdonjang/.openclaw/workspace/dashboard-ui/build</string>
+    <string>-l</string>
+    <string>3000</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/youngdonjang/.openclaw/workspace/dashboard-ui</string>
+  <key>StandardOutPath</key>
+  <string>/Users/youngdonjang/logs/frontend.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/youngdonjang/logs/frontend.err.log</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+</dict>
+</plist>

@@ -1,0 +1,71 @@
+body{font-family:Inter,Arial,Helvetica,sans-serif;margin:0;background:#f5f7fb}
+.app header{background:#0b1320;color:#fff;padding:12px 20}
+.app main{padding:10px;display:grid;grid-template-columns: 1fr;grid-template-rows: auto 1fr auto;gap:12px;height:calc(100vh - 64px)}
+.top-cards{grid-column:1/3;display:flex;gap:12px}
+.card{background:#fff;padding:10px;border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,0.03)}
+.card.small{flex:1;min-width:120px;text-align:center}
+.card.small .big{font-size:18px;font-weight:700;margin-top:6px}
+
+/* main chart on left */
+.chart{grid-column:1/2;background:#fff;padding:12px;border-radius:6px;height:360px}
+
+/* right sidebar for positions & trades */
+.panels{display:flex;flex-direction:column;gap:12px;height:calc(100vh - 200px);overflow:auto}
+
+/* bottom mini-grid full width */
+.mini-grid{grid-column:1/3}
+.mini-list{display:flex;gap:8px;flex-wrap:wrap}
+.mini-item{width:160px;cursor:pointer}
+.mini-item strong{display:block;margin-bottom:6px}
+
+/* full grid of larger mini charts */
+.full-grid .mini-list-large{display:flex;flex-wrap:nowrap;gap:12px;overflow-x:auto;padding-bottom:8px}
+.mini-large{flex:0 0 calc(100%/6 - 10px);background:#fff;padding:8px;border-radius:6px;height:180px;display:flex;flex-direction:column;margin:6px}
+.mini-large .mini-title{font-weight:700;margin-bottom:6px}
+.mini-large canvas{flex:1}
+@media(max-width:900px){.mini-large{flex:1 1 calc(50% - 12px);height:180px}}
+@media(max-width:600px){.mini-large{flex:1 1 100%;height:160px}}
+
+.panels{display:flex;flex-direction:column;gap:12px}
+.row-top{display:flex;gap:12px;align-items:flex-start;flex-wrap:nowrap;width:100%}
+.trades{background:#fff;padding:8px;border-radius:6px;overflow:auto;max-height:420px;width:100%;flex:1}
+.trades table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+.trades thead th{padding:6px;text-align:left;font-weight:700}
+.trades tbody td{padding:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trades table tbody{max-height:360px;overflow:auto;display:block}
+.trades table thead, .trades table tbody tr{display:table;width:100%;table-layout:fixed}
+.trades table{display:block}
+
+.positions{background:#fff;padding:8px;border-radius:6px;flex:1 1 420px}
+.positions .positions-table{width:100%;border-collapse:collapse}
+.positions .positions-table th,.positions .positions-table td{padding:6px;border-bottom:1px solid #eee;text-align:left;font-size:13px}
+.positions .positions-table td{white-space:nowrap}
+.row-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:1200px){.row-bottom{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.row-bottom{grid-template-columns:1fr}}
+.positions-table{width:100%;border-collapse:collapse}
+.positions-table th,.positions-table td{padding:6px;border-bottom:1px solid #eee;text-align:left;font-size:13px}
+.alert{color:#b91c1c;font-weight:700}
+.ok{color:#0f766e;font-weight:700}
+.plus{color:#0f766e}
+.minus{color:#b91c1c}
+
+/* ensure chart fits single page */
+.chart canvas{width:100% !important;height:100% !important}
+
+/* reduce fonts for compact view */
+.app header h2{font-size:16px;margin:0}
+.card h3{margin:0 0 6px 0;font-size:14px}
+
+
+@media(min-width:900px){
+  .app main{grid-template-columns: 1fr 360px;grid-template-rows: auto 1fr;}
+}
+@media(min-width:1200px){
+  .mini-large{flex:1 1 calc(33% - 12px)}
+}
+
+
+.panels{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-content:start}
+@media(max-width:1200px){.panels{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.panels{grid-template-columns:1fr}}

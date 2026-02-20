@@ -1,0 +1,10 @@
+{
+  "routes": [
+    {
+      "method": "PUT",
+      "path": "/posts/:id/publish",
+      "handler": "post.publish",
+      "config": { "policies": [] }
+    }
+  ]
+}

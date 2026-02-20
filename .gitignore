@@ -1,0 +1,6 @@
+*.zip
+*.log
+node_modules
+.next
+.cache
+venv

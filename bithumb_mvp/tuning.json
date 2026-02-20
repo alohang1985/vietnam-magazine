@@ -1,0 +1,12 @@
+{
+  "_global": {
+    "size_pct": 0.003,
+    "tp_partial": 1.003,
+    "tp_final": 1.007,
+    "dca_step": 0.01,
+    "dca_scale": 0.5,
+    "max_dca_steps": 0,
+    "max_exposure": 0.1,
+    "daily_trade_limit_per_pair": 200
+  }
+}
