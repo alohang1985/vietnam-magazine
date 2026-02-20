@@ -1,0 +1,10 @@
+node_modules
+**/*.log
+**/*.zip
+**/.next
+**/.cache
+venv
+bithumb_mvp/monitoring/reports
+dashboard-api/server.run.log
+vietnam-travel-magazine/dashboard-api/server.run.log
+logs
