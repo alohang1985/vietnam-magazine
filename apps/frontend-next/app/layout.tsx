@@ -1,13 +1,15 @@
 import './globals.css'
 import React from 'react'
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_BASE_URL || 'http://localhost:3000'
 export const metadata = {
   title: 'Vietnam Travel Magazine',
   description: 'Premium Vietnam travel guides — 현지 팁과 일정, 예산을 담은 프리미엄 가이드',
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     title: 'Vietnam Travel Magazine',
     description: 'Premium Vietnam travel guides — 현지 팁과 일정, 예산을 담은 프리미엄 가이드',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    url: SITE_URL
   }
 }
 

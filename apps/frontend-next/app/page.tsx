@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -10,9 +12,17 @@ export const metadata = {
 const CMS_URL = process.env.NEXT_PUBLIC_CMS_URL || 'http://localhost:1337'
 
 export default async function Home() {
-  const res = await fetch(`${CMS_URL}/api/posts?populate=*&pagination[limit]=12&sort[0]=published_at:desc`, { cache: 'no-store' })
-  const json = await res.json()
-  const posts = json.data || []
+  let posts = []
+  try {
+    if (typeof CMS_URL !== 'string' || !CMS_URL) throw new Error('CMS_URL missing')
+    const res = await fetch(`${CMS_URL}/api/posts?populate=*&pagination[limit]=12&sort[0]=published_at:desc`, { cache: 'no-store' })
+    if (!res.ok) throw new Error('Bad response')
+    const json = await res.json()
+    posts = json.data || []
+  } catch (e) {
+    // fallback to empty list
+    posts = []
+  }
 
   return (
     <>

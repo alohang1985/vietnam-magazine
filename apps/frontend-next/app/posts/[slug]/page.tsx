@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import React from 'react'
 import Image from 'next/image'
 
@@ -5,9 +7,16 @@ const CMS_URL = process.env.NEXT_PUBLIC_CMS_URL || 'http://localhost:1337'
 
 export default async function PostPage({ params }: { params: { slug: string } }) {
   const slug = params.slug
-  const res = await fetch(`${CMS_URL}/api/posts?filters[slug][$eq]=${slug}&populate=*&pagination[limit]=1`, { cache: 'no-store' })
-  const json = await res.json()
-  const p = json.data && json.data[0]
+  let p = null
+  try {
+    if (typeof CMS_URL !== 'string' || !CMS_URL) throw new Error('CMS_URL missing')
+    const res = await fetch(`${CMS_URL}/api/posts?filters[slug][$eq]=${encodeURIComponent(slug)}&populate=*&pagination[limit]=1`, { cache: 'no-store' })
+    if (!res.ok) throw new Error('Bad response')
+    const json = await res.json()
+    p = json.data && json.data[0]
+  } catch (e) {
+    p = null
+  }
   if (!p) return <div>게시물을 찾을 수 없습니다.</div>
   const attr = p.attributes
 
