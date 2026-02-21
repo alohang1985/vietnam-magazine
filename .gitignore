@@ -4,3 +4,6 @@ node_modules
 .next
 .cache
 venv
+
+# ignore monitoring reports
+bithumb_mvp/monitoring/reports/
