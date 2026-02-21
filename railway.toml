@@ -1,13 +1,7 @@
-[project]
-name = "vietnam-travel-magazine"
-
 [build]
-builder = "NIXPACKS"
-rootDirectory = "apps/strapi-cms"
+builder = "dockerfile"
+dockerfilePath = "apps/strapi-cms/Dockerfile"
 
 [deploy]
-startCommand = "sh -lc 'mkdir -p public && npm run start'"
-
-[variables]
-CMS_URL = { value = "http://localhost:1337" }
-PUBLISH_TIME = { value = "09:30" }
+startCommand = "npm run start"
+restartPolicyType = "on_failure"
