@@ -1,0 +1,10 @@
+{
+  "$schema": "https://schema.up.railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm --prefix apps/strapi-cms install && npm --prefix apps/strapi-cms run build"
+  },
+  "deploy": {
+    "startCommand": "bash -lc 'cd apps/strapi-cms && mkdir -p public && npm run start'"
+  }
+}
