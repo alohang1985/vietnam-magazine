@@ -3,4 +3,5 @@ builder = "NIXPACKS"
 rootDirectory = "apps/strapi-cms"
 
 [deploy]
+preDeployCommand = "true"
 startCommand = "sh -lc 'mkdir -p public && npm run start'"
