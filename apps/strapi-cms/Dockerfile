@@ -1,4 +1,4 @@
-FROM node:20-bullseye-slim
+FROM node:20-bullseye-slim@sha256:be08b7dfa11af5daa0757d12160117e02587f28a746f4cbffe20b46896e50608
 
 RUN apt-get update && apt-get install -y \
     libvips-dev \
@@ -11,9 +11,6 @@ WORKDIR /app
 
 COPY package*.json ./
 
-ENV npm_config_build_from_source=sharp
-ENV SHARP_IGNORE_GLOBAL_LIBVIPS=0
-
 RUN npm install
 
 COPY . .
@@ -25,4 +22,3 @@ RUN echo "y" | npm run build
 EXPOSE 1337
 
 CMD ["npm", "run", "start"]
-# cache bust Sat Feb 21 19:53:53 +07 2026
