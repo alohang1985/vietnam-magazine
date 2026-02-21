@@ -1,15 +1,6 @@
-[project]
-name = "vietnam-travel-magazine"
+[build]
+builder = "NIXPACKS"
+rootDirectory = "apps/strapi-cms"
 
-[services.frontend]
-path = "apps/frontend-next"
-start = "npm run build && npm run start"
-
-[services.cms]
-path = "apps/strapi-cms"
-# let Procfile / root start handle build/start; keep cms service minimal
-start = "cd apps/strapi-cms && npm run start"
-
-[variables]
-  CMS_URL = { value = "http://localhost:1337" }
-  PUBLISH_TIME = { value = "09:30" }
+[deploy]
+startCommand = "npm run start"
