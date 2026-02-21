@@ -1,0 +1,2 @@
+[start]
+cmd = "bash -lc \"cd apps/strapi-cms && mkdir -p public && npm run start\""
