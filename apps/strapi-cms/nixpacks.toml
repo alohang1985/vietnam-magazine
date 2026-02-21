@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "vips", "pkg-config", "python3", "gcc", "gnumake"]
+aptPkgs = ["libvips-dev", "build-essential", "python3", "pkg-config"]
