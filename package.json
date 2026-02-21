@@ -5,6 +5,7 @@
   "scripts": {
     "start": "cd apps/strapi-cms && npm run start",
     "build": "cd apps/strapi-cms && npm run build",
-    "postinstall": "cd apps/strapi-cms && npm install --no-audit --no-fund"
+    "postinstall": "mkdir -p public",
+    "prestart": "mkdir -p public"
   }
 }
