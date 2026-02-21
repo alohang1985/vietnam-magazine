@@ -1,7 +1,13 @@
+[project]
+name = "vietnam-travel-magazine"
+
 [build]
 builder = "NIXPACKS"
 rootDirectory = "apps/strapi-cms"
 
 [deploy]
-preDeployCommand = "true"
 startCommand = "sh -lc 'mkdir -p public && npm run start'"
+
+[variables]
+CMS_URL = { value = "http://localhost:1337" }
+PUBLISH_TIME = { value = "09:30" }
