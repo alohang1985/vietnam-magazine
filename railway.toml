@@ -1,6 +1,5 @@
 [build]
 builder = "NIXPACKS"
-rootDirectory = "apps/strapi-cms"
 
 [deploy]
-startCommand = "npm run start"
+startCommand = "npm --prefix apps/strapi-cms run start"
