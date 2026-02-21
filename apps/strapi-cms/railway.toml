@@ -1,5 +1,7 @@
 [build]
-builder = "NIXPACKS"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "sh -lc 'mkdir -p public && npm run start'"
+startCommand = "npm run start"
+restartPolicyType = "on_failure"
