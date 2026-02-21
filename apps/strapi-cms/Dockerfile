@@ -1,19 +1,27 @@
-FROM node:20-bullseye
+FROM node:20-bullseye-slim
 
 RUN apt-get update && apt-get install -y \
-  build-essential \
-  python3 \
-  pkg-config \
-  libvips-dev \
-  && rm -rf /var/lib/apt/lists/*
+    libvips-dev \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm ci
+
+ENV npm_config_build_from_source=sharp
+ENV SHARP_IGNORE_GLOBAL_LIBVIPS=0
+
+RUN npm install
 
 COPY . .
+
 RUN mkdir -p public
 
-ENV NODE_ENV=production
+RUN npm run build
+
 EXPOSE 1337
-CMD ["sh", "-lc", "mkdir -p public && npm run start"]
+
+CMD ["npm", "run", "start"]
