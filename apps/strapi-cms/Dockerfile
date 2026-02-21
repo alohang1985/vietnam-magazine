@@ -20,7 +20,7 @@ COPY . .
 
 RUN mkdir -p public
 
-RUN CI=true npm run build
+RUN echo "y" | npm run build
 
 EXPOSE 1337
 
