@@ -8,7 +8,8 @@
     "build": "strapi build",
     "seed": "node ./scripts/seed_posts.js",
     "apply-schema": "node ./scripts/apply_schema.js",
-    "postinstall": "mkdir -p public"
+    "postinstall": "mkdir -p public",
+    "prestart": "mkdir -p public"
   },
   "dependencies": {
     "@strapi/strapi": "4.26.1"
