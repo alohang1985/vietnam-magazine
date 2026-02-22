@@ -31,6 +31,11 @@ export default async function PostPage({ params }: { params: { slug: string } })
   const attr = p.attributes
   const img = attr.hero_image?.url || unsplash[attr.category] || unsplash['phu-quoc']
 
+  const content = attr.article_markdown || ''
+  const creditMatch = content.match(/\*\[Photo by .+? on Unsplash\]\(.+?\)\*/)
+  const creditLine = creditMatch ? creditMatch[0] : null
+  const cleanContent = content.replace(/!\[.*?\]\(.*?\) \*\[Photo by .+? on Unsplash\]\(.+?\)\* /, '')
+
   return (
     <article className="post-article">
       <div style={{width:'100%',height:400,overflow:'hidden'}}>
@@ -49,13 +54,19 @@ export default async function PostPage({ params }: { params: { slug: string } })
         <div className="post-meta">{attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''}</div>
         <div className="prose-area" style={{background:'#fff',color:'#222',padding:'12px',borderRadius:8}}>
           <section style={{maxWidth: '720px', margin: '0 auto', fontSize: '17px', lineHeight: '1.9', color: '#333'}}>
-        <ReactMarkdown components={{ h2: ({children}) => <h2 style={{fontSize: '22px', fontWeight: 'bold', color: '#000', borderLeft: '4px solid #1a6b54', paddingLeft: '12px', margin: '32px 0 16px'}}>{children}</h2>, h3: ({children}) => <h3 style={{fontSize: '18px', fontWeight: 'bold', margin: '24px 0 12px'}}>{children}</h3>, p: ({children}) => <p style={{marginBottom: '20px', lineHeight: '1.9'}}>{children}</p>, strong: ({children}) => <strong style={{color: '#000', fontWeight: 'bold'}}>{children}</strong>, ul: ({children}) => <ul style={{paddingLeft: '24px', marginBottom: '20px'}}>{children}</ul>, li: ({children}) => <li style={{marginBottom: '8px', lineHeight: '1.8'}}>{children}</li>, img: ({src, alt}) => <img src={src} alt={alt} style={{width: '100%', borderRadius: '12px', margin: '24px 0', objectFit: 'cover'}} />, a: ({href, children}) => <a href={href} style={{color: '#000', textDecoration: 'underline'}} target="_blank" rel="noopener noreferrer">{children}</a>, }} >{attr.article_markdown || ''}</ReactMarkdown>
+        <ReactMarkdown components={{ h2: ({children}) => <h2 style={{fontSize: '22px', fontWeight: 'bold', color: '#000', borderLeft: '4px solid #1a6b54', paddingLeft: '12px', margin: '32px 0 16px'}}>{children}</h2>, h3: ({children}) => <h3 style={{fontSize: '18px', fontWeight: 'bold', margin: '24px 0 12px'}}>{children}</h3>, p: ({children}) => <p style={{marginBottom: '20px', lineHeight: '1.9'}}>{children}</p>, strong: ({children}) => <strong style={{color: '#000', fontWeight: 'bold'}}>{children}</strong>, ul: ({children}) => <ul style={{paddingLeft: '24px', marginBottom: '20px'}}>{children}</ul>, li: ({children}) => <li style={{marginBottom: '8px', lineHeight: '1.8'}}>{children}</li>, img: ({src, alt}) => <img src={src} alt={alt} style={{width: '100%', borderRadius: '12px', margin: '24px 0', objectFit: 'cover'}} />, a: ({href, children}) => <a href={href} style={{color: '#000', textDecoration: 'underline'}} target="_blank" rel="noopener noreferrer">{children}</a>, }} >{cleanContent}</ReactMarkdown>
       </section>
         </div>
         <div className="other-links">
           <a href="/" className="btn">다른 여행지 보기</a>
         </div>
+        {creditLine && (
+          <p style={{fontSize: '11px', color: '#bbb', marginTop: '40px', textAlign: 'right'}}>
+            <ReactMarkdown>{creditLine}</ReactMarkdown>
+          </p>
+        )}
       </div>
+
     </article>
   )
 }
