@@ -45,16 +45,23 @@ async function generatePost(topic) {
     { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 3000, temperature: 0.7 } }
   );
 
-  const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  console.log('Gemini raw response:', (text || '').slice(0, 500));
-  const cleaned = (text || '').replace(/`{3}json/g, '').replace(/`{3}/g, '').replace(/^\s*json\s*/i, '').trim();
-  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    console.error('Full response:', text);
-    throw new Error('JSON not found in response');
+  const text = response.data.candidates[0].content.parts[0].text;
+  const cleaned = (text || '').replace(/`{3}json/g, '').replace(/`{3}/g, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch(e1) {
+    try {
+      const jsonMatch = cleaned.match(/\{[\s\S]*"content"\s*:\s*"[\s\S]*"\s*\}/);
+      if (jsonMatch) return JSON.parse(jsonMatch[0]);
+    } catch(e2) {}
+    const title = (cleaned.match(/"title"\s*:\s*"([^"]+)"/) || [])[1] || topic;
+    const slug = (cleaned.match(/"slug"\s*:\s*"([^"]+)"/) || [])[1] || 'post-' + Date.now();
+    const category = (cleaned.match(/"category"\s*:\s*"([^"]+)"/) || [])[1] || 'ho-chi-minh';
+    const contentMatch = cleaned.match(/"content"\s*:\s*"([\s\S]+)"\s*\}?\s*$/);
+    const content = contentMatch ? contentMatch[1].replace(/\ /g, ' ').replace(/\"/g, '"') : topic + '에 대한 여행 정보입니다.';
+    return { title, slug, category, content };
   }
-  return JSON.parse(jsonMatch[0]);
-}
+
 
 async function createPost(data, image) {
   let content = data.content;
