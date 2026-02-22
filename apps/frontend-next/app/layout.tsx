@@ -18,25 +18,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <head>
         <meta name="theme-color" content="#1a6b54" />
-        {/* AdSense placeholder */}
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" crossOrigin="anonymous"></script>
-        {/* GA4 placeholder */}
-        {process.env.NEXT_PUBLIC_GA_ID ? (<script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}></script>) : null}
-        {process.env.NEXT_PUBLIC_GA_ID ? (<script dangerouslySetInnerHTML={{ __html: `window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');` }}></script>) : null}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-sans">
-        <header className="border-b bg-cream-bg dark:bg-gray-800">
-          <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-serif text-travel-green">Vietnam Travel Magazine</h1>
-            <nav>
-              <a href="/" className="mr-4">홈</a>
-              <a href="/search" className="mr-4">검색</a>
+      <body className="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans">
+        <header className="site-header">
+          <div className="container header-inner">
+            <div className="brand">
+              <span className="logo">🇻🇳</span>
+              <div>
+                <div className="site-title">Vietnam Travel Magazine</div>
+                <div className="site-sub">베트남 여행의 모든 것</div>
+              </div>
+            </div>
+            <nav className="nav">
+              <a href="/" className="nav-link">홈</a>
+              <a href="/search" className="nav-link">검색</a>
             </nav>
           </div>
         </header>
-        <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
-        <footer className="border-t py-6 mt-12 text-center text-sm text-gray-500">
-          © Vietnam Travel Magazine
+
+        <main className="container main-content">{children}</main>
+
+        <footer className="site-footer">
+          <div className="container">© Vietnam Travel Magazine — 제작</div>
         </footer>
       </body>
     </html>
