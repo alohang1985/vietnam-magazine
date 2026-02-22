@@ -29,12 +29,6 @@
       "path": "/posts/:id",
       "handler": "api::post.post.delete",
       "config": { "policies": [] }
-    },
-    {
-      "method": "PUT",
-      "path": "/posts/:id/publish",
-      "handler": "api::post.post.publish",
-      "config": { "policies": [] }
     }
   ]
 }
