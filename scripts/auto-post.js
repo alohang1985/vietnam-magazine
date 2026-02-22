@@ -8,7 +8,7 @@ async function generateContent(category) {
   const prompt = `베트남 여행 잡지 기사를 한국어로 작성해줘. 카테고리: ${category}. 제목, 슬러그(영어 소문자 하이픈), 본문(마크다운, 최소 800자) 형식으로 아래 JSON만 반환해줘 (다른 텍스트 없이): {"title":"제목","slug":"slug-here","content":"마크다운 본문"}`;
 
   const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
     { contents: [{ parts: [{ text: prompt }] }] }
   );
 
