@@ -58,10 +58,16 @@ export default async function Home() {
               const preview = (attr.article_markdown || '').replace(/[#*>`]/g,'').slice(0,160)
               const date = attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''
               return (
-                <article key={p.id} className="card-article">
-                  <div className="card-media">
-                    <Image src={img} alt={attr.title} width={600} height={360} className="card-img" />
-                  </div>
+                <article key={p.id} className="card-article overflow-hidden">
+                  <Link href={`/posts/${attr.slug}`} className="card-media-link">
+                    <div className="card-media" style={{position:'relative'}}>
+                      <Image src={img} alt={attr.title} width={600} height={360} className="card-img" />
+                      <div style={{position:'absolute',left:0,right:0,bottom:0,padding:'12px',background:'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0) 100%)'}}>
+                        <div style={{display:'inline-block',background:'rgba(0,0,0,0.5)',color:'#fff',padding:'6px 10px',borderRadius:999,fontSize:12,fontWeight:700}}>{attr.category}</div>
+                        <h3 style={{color:'#fff',textShadow:'2px 2px 8px rgba(0,0,0,0.8)',margin:'8px 0 0'}} className="card-title-overlay">{attr.title}</h3>
+                      </div>
+                    </div>
+                  </Link>
                   <div className="card-body">
                     <div className={`badge ${categoryColor[attr.category] || 'bg-gray-100 text-gray-800'}`}>{attr.category}</div>
                     <h3 className="card-title">{attr.title}</h3>
