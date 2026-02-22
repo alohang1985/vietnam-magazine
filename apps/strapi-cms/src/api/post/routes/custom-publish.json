@@ -33,7 +33,7 @@
     {
       "method": "PUT",
       "path": "/posts/:id/publish",
-      "handler": "post.publish",
+      "handler": "api::post.post.publish",
       "config": { "policies": [] }
     }
   ]
