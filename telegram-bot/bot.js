@@ -37,7 +37,8 @@ async function getUnsplashImage(query) {
 }
 
 async function generatePost(topic) {
-  const prompt = `당신은 베트남 현지 여행 전문 에디터입니다. 주제: "${topic}"\n위 주제에 대해 베트남 여행 매거진 포스팅을 한국어로 작성해주세요.\n- 실제 존재하는 장소/식당이면 구체적인 정보(가격, 위치, 운영시간) 포함\n- 구글맵 링크 형식: [지도에서 보기](https://maps.google.com/?q=${encodeURIComponent(topic)})\n- 마크다운 형식, ## 소제목 사용\n- 최소 1500자\n- 친근한 어투\n- 글 마지막에 "💡 여행 꿀팁" 섹션\n아래 JSON만 반환 (다른 텍스트 없이): {"title":"제목","slug":"slug-here","category":"ho-chi-minh","content":"마크다운 본문"}`;
+    const prompt = `You must respond with ONLY a valid JSON object. No markdown, no explanation, no code blocks. Just raw JSON. Topic: "${topic}" Write a Korean travel magazine article about this topic in Vietnam. Rules: - Korean language - Include real place info (price, location, hours) if applicable - Google maps link format: [지도에서 보기](https://maps.google.com/?q=${encodeURIComponent(topic)}) - Markdown format with ## headings - Minimum 800 characters - Friendly tone - End with 💡 여행 꿀팁 section Respond with this exact JSON structure (raw JSON only, no backticks): {"title":"제목","slug":"english-slug-here","category":"most-relevant-city","content":"markdown content here"} category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne`;
+
 
   const response = await axios.post(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
