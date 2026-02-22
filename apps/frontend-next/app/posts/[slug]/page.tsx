@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 import React from 'react'
 import Image from 'next/image'
+import ReactMarkdown from 'react-markdown'
 
 const CMS_URL = process.env.NEXT_PUBLIC_CMS_URL || 'http://localhost:1337'
 
@@ -49,7 +50,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
       </nav>
 
       <section className="prose dark:prose-invert">
-        <div dangerouslySetInnerHTML={{ __html: attr.article_markdown }} />
+        <ReactMarkdown>{attr.article_markdown || ''}</ReactMarkdown>
       </section>
 
       <section className="mt-8">
