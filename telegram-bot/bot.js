@@ -47,7 +47,7 @@ async function generatePost(topic) {
 
   const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
   console.log('Gemini raw response:', (text || '').slice(0, 500));
-  const cleaned = (text || '').replace(/```json|```/g, '').replace(/^\s*json\s*/i, '').trim();
+  const cleaned = (text || '').replace(/`{3}json/g, '').replace(/`{3}/g, '').replace(/^\s*json\s*/i, '').trim();
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     console.error('Full response:', text);
