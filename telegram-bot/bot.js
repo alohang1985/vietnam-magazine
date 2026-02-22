@@ -80,6 +80,22 @@ function extractJson(raw) {
   throw new Error('Failed to parse JSON from Gemini response');
 }
 
+
+async function generateFromPage(url, pageText) {
+  return retry(async () => {
+    const prompt = `You must respond with ONLY a valid JSON object. Analyze the following web page and reconstruct it as a Korean travel magazine article. Do not include the raw HTML. Topic: "${url}"
+Page content:
+${pageText}
+Rules: - Korean language only for title and content - English only for slug - Include real place info when present - Markdown format with ## headings - Minimum 500 characters - Friendly tone - Return ONLY JSON: {"title":"한국어 제목","slug":"english-slug","category":"city","content":"markdown"}`;
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 8192, temperature: 0.5 } }
+    );
+    const raw = response.data.candidates[0].content.parts[0].text;
+    console.log('Gemini(page) preview:', (raw||'').slice(0,200));
+    return extractJson(raw||'');
+  });
+}
 async function generatePost(topic) {
   return retry(async () => {
     const prompt = `You must respond with ONLY a valid JSON object. No markdown, no code blocks, no backticks. Just raw JSON. Topic: "${topic}" Write a Korean travel magazine article about this topic in Vietnam. Rules: - Korean language only for title and content - English only for slug (lowercase, hyphens only) - Include real place info if applicable (price, location, hours) - Markdown format with ## headings in content - Minimum 500 characters for content - Friendly Korean tone - End content with 💡 여행 꿀팁 section Return ONLY this JSON (absolutely no backticks or extra text): {"title":"한국어 제목","slug":"english-slug","category":"city","content":"markdown"} category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne`;
@@ -123,10 +139,27 @@ async function processMessage(chatId, text) {
   const trimmed = text.trim();
   try {
     await sendMessage(chatId, `⏳ "${trimmed}" 포스팅 생성 중입니다...`);
-    const [data, image] = await Promise.all([generatePost(trimmed), getUnsplashImage(trimmed)]);
-    const post = await createPost(data, image);
-    const slug = post.data && post.data.attributes ? post.data.attributes.slug : '';
-    await sendMessage(chatId, `✅ 포스팅 완료! <b>${data.title}</b> 🔗 https://vietnam-magazine.vercel.app/posts/${slug}`);
+    if (/^https?:\/\//i.test(trimmed)) {
+      // user sent a URL - fetch page and ask Gemini to analyze it
+      let pageText;
+      try {
+        pageText = await fetchPageText(trimmed);
+      } catch (err) {
+        await sendMessage(chatId, `❌ URL을 가져오지 못했습니다: ${err.message}`);
+        return;
+      }
+      const data = await generateFromPage(trimmed, pageText);
+      // for URL-origin posts, do not attach Unsplash image; create post and return summary text to user
+      const post = await createPost(data, null);
+      await sendMessage(chatId, `✅ URL 분석 및 포스팅 완료! <b>${data.title}</b>
+요약:
+${data.content.slice(0,300)}...`);
+    } else {
+      const [data, image] = await Promise.all([generatePost(trimmed), getUnsplashImage(trimmed)]);
+      const post = await createPost(data, image);
+      const slug = post.data && post.data.attributes ? post.data.attributes.slug : '';
+      await sendMessage(chatId, `✅ 포스팅 완료! <b>${data.title}</b> 🔗 https://vietnam-magazine.vercel.app/posts/${slug}`);
+    }
   } catch (e) {
     console.error('processMessage error:', e.message);
     await sendMessage(chatId, `❌ 오류 발생: ${e.message}`);
