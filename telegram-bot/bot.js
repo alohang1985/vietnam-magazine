@@ -46,9 +46,13 @@ async function generatePost(topic) {
   );
 
   const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  const cleaned = (text || '').replace(/```json|```/g, '').trim();
+  console.log('Gemini raw response:', (text || '').slice(0, 500));
+  const cleaned = (text || '').replace(/```json|```/g, '').replace(/^\s*json\s*/i, '').trim();
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('JSON not found in response');
+  if (!jsonMatch) {
+    console.error('Full response:', text);
+    throw new Error('JSON not found in response');
+  }
   return JSON.parse(jsonMatch[0]);
 }
 
