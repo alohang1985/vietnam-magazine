@@ -103,7 +103,7 @@ async function createPost(data, category, image) {
   try {
     const postData = {
       title: data.title,
-      slug: data.slug + '-' + Date.now(),
+      slug: (data.slug + '-' + Date.now()).replace(/[^A-Za-z0-9\-_.~]/g, '').toLowerCase(),
       category: category,
       article_markdown: data.content,
       published_at: new Date().toISOString()
