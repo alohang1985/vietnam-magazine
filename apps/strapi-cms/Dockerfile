@@ -15,7 +15,7 @@ RUN npm install
 
 COPY . .
 
-RUN mkdir -p public
+RUN mkdir -p public/uploads
 
 RUN echo "y" | npm run build
 
