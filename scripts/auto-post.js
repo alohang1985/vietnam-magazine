@@ -1,5 +1,5 @@
 /*
-  자동 게시 스크립트 (간단 구현)
+  자동 게시 스크립트 (Gemini 최신 호출 방식 적용)
   - Google Gemini (Generative AI)로 한국어 베트남 여행 글 생성
   - 랜덤 카테고리 선택
   - Strapi에 POST /api/posts 로 업로드 후 published_at 설정으로 발행
@@ -13,6 +13,7 @@
 */
 
 const axios = require('axios');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const CATEGORIES = [
   'phu-quoc','nha-trang','da-nang','ho-chi-minh','hanoi','ha-long','dalat','hoi-an','sapa','mui-ne','other'
@@ -27,21 +28,16 @@ function slugify(text){
 }
 
 async function generateArticle(titleSeed){
-  const prompt = `한국어로 베트남 여행 관련 기사 작성. 제목 후보: "${titleSeed}".\n- 분량: 최소 800자(한글 기준)\n- 형식: article_markdown 필드에 넣을 수 있는 마크다운(단락, 소제목 포함)
-- 톤: 친절하고 정보 중심, 여행 정보(이동,추천장소,예산 팁)를 포함`;
+  const prompt = `한국어로 베트남 여행 관련 기사 작성. 제목 후보: "${titleSeed}".\n- 분량: 최소 800자(한글 기준)\n- 형식: article_markdown 필드에 넣을 수 있는 마크다운(단락, 소제목 포함)\n- 톤: 친절하고 정보 중심, 여행 정보(이동,추천장소,예산 팁)를 포함`;
 
-  // 간단한 Gemini 호출 예시(REST 형태). 실제 엔드포인트/파라미터는 사용 중인 Gemini API에 맞춰 조정하세요.
   const apiKey = process.env.GEMINI_API_KEY;
   if(!apiKey) throw new Error('GEMINI_API_KEY not set');
 
   try{
-    const res = await axios.post('https://gemini.googleapis.com/v1/models/text-bison-001:generate',
-      { prompt, temperature: 0.7, max_output_tokens: 1500 },
-      { headers: { 'Authorization': `Bearer ${apiKey}` } }
-    );
-
-    // 응답 구조는 실제 API에 맞춰 조정 필요
-    const text = (res.data && (res.data.output_text || (res.data.candidates && res.data.candidates[0] && res.data.candidates[0].content))) || JSON.stringify(res.data);
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
     return text;
   }catch(err){
     throw new Error('Gemini generation failed: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
@@ -96,7 +92,7 @@ function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
     }[category] || '베트남 여행 가이드';
 
     console.log('Selected category:', category);
-    const generated = await generateArticle(titleSeed);
+    let generated = await generateArticle(titleSeed);
 
     // 간단 길이 체크(한글 기준 대략 자모 수)
     const plain = generated.replace(/\s+/g,' ').trim();
@@ -108,7 +104,7 @@ function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
     }
 
     // 제목은 생성 텍스트의 첫 문장을 제목으로 사용(간단 추출)
-    const firstLine = plain.split('\n').find(l => l && l.trim().length>0) || titleSeed;
+    const firstLine = generated.replace(/\r/g,'').split('\n').find(l => l && l.trim().length>0) || titleSeed;
     const title = firstLine.length>120 ? firstLine.slice(0,120) : firstLine;
     const slug = slugify(title);
 
