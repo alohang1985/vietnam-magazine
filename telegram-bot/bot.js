@@ -4,18 +4,31 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const STRAPI_URL = process.env.STRAPI_URL;
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
-const categories = {
-  '푸꾸옥': 'phu-quoc',
-  '나트랑': 'nha-trang',
-  '다낭': 'da-nang',
-  '호치민': 'ho-chi-minh',
-  '하노이': 'hanoi',
-  '하롱': 'ha-long',
-  '달랏': 'dalat',
-  '호이안': 'hoi-an',
-  '사파': 'sapa',
-  '무이네': 'mui-ne'
-};
+
+const ALLOWED_CATEGORIES = ['phu-quoc','nha-trang','da-nang','ho-chi-minh','hanoi','ha-long','dalat','hoi-an','sapa','mui-ne'];
+
+// 필수 env 검증
+const requiredEnv = ['TELEGRAM_BOT_TOKEN','GEMINI_API_KEY','STRAPI_URL','STRAPI_API_TOKEN'];
+for (const key of requiredEnv) {
+  if (!process.env[key]) {
+    console.error(`Missing required env: ${key}`);
+    process.exit(1);
+  }
+}
+
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function retry(fn, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      console.error(`Attempt ${i+1} failed: ${e.message}`);
+      if (i < retries - 1) await sleep(2000 * (i + 1));
+      else throw e;
+    }
+  }
+}
 
 async function sendMessage(chatId, text) {
   await axios.post(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { chat_id: chatId, text, parse_mode: 'HTML' });
@@ -32,65 +45,73 @@ async function getUnsplashImage(query) {
     if (!photo) return null;
     return { url: photo.urls.regular, credit: `Photo by ${photo.user.name} on Unsplash`, link: photo.links.html };
   } catch (e) {
+    console.error('Unsplash error:', e.message);
     return null;
   }
 }
 
-async function generatePost(topic) {
-    const prompt = `You must respond with ONLY a valid JSON object. No markdown, no explanation, no code blocks. Just raw JSON. Topic: "${topic}" Write a Korean travel magazine article about this topic in Vietnam. Rules: - Korean language - Include real place info (price, location, hours) if applicable - Google maps link format: [지도에서 보기](https://maps.google.com/?q=${encodeURIComponent(topic)}) - Markdown format with ## headings - Minimum 800 characters - Friendly tone - End with 💡 여행 꿀팁 section Respond with this exact JSON structure (raw JSON only, no backticks): {"title":"제목","slug":"english-slug-here","category":"most-relevant-city","content":"markdown content here"} category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne`;
-
-
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 3000, temperature: 0.7 } }
-  );
-
-  const text = response.data.candidates[0].content.parts[0].text;
-  const cleaned = (text || '').replace(/`{3}json/g, '').replace(/`{3}/g, '').trim();
+function extractJson(raw) {
+  const cleaned = raw.replace(/```json/g, '').replace(/```/g, '').trim();
   try {
     return JSON.parse(cleaned);
-  } catch(e1) {
-    try {
-      const jsonMatch = cleaned.match(/\{[\s\S]*"content"\s*:\s*"[\s\S]*"\s*\}/);
-      if (jsonMatch) return JSON.parse(jsonMatch[0]);
-    } catch(e2) {}
-    const title = (cleaned.match(/"title"\s*:\s*"([^"]+)"/) || [])[1] || topic;
-    const slug = (cleaned.match(/"slug"\s*:\s*"([^"]+)"/) || [])[1] || 'post-' + Date.now();
-    const category = (cleaned.match(/"category"\s*:\s*"([^"]+)"/) || [])[1] || 'ho-chi-minh';
-    const contentMatch = cleaned.match(/"content"\s*:\s*"([\s\S]+)"\s*\}?\s*$/);
-    const content = contentMatch ? contentMatch[1].replace(/\ /g, ' ').replace(/\"/g, '"') : topic + '에 대한 여행 정보입니다.';
-    return { title, slug, category, content };
+  } catch (e1) {}
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch (e2) {}
   }
+  throw new Error('Failed to parse JSON from Gemini response');
+}
 
+async function generatePost(topic) {
+  return retry(async () => {
+    const prompt = `You must respond with ONLY a valid JSON object. No markdown, no code blocks, no backticks. Just raw JSON. Topic: "${topic}" Write a Korean travel magazine article about this topic in Vietnam. Rules: - Korean language only for title and content - English only for slug (lowercase, hyphens only) - Include real place info if applicable (price, location, hours) - Markdown format with ## headings in content - Minimum 800 characters for content - Friendly Korean tone - End content with 💡 여행 꿀팁 section Return ONLY this JSON (absolutely no backticks or extra text): {"title":"한국어 제목","slug":"english-slug","category":"city","content":"markdown"} category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne`;
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 2000, temperature: 0.5 } }
+    );
+
+    const raw = response.data.candidates[0].content.parts[0].text;
+    console.log('Gemini response preview:', (raw || '').slice(0, 200));
+    return extractJson(raw || '');
+  });
+}
+
+function validatePostData(data) {
+  if (!data.title || data.title.length < 2) throw new Error('Invalid title');
+  if (!data.slug) throw new Error('Invalid slug');
+  if (!data.content || data.content.length < 100) throw new Error('Content too short');
+  if (!ALLOWED_CATEGORIES.includes(data.category)) data.category = 'ho-chi-minh';
+  return data;
+}
 
 async function createPost(data, image) {
+  data = validatePostData(data);
   let content = data.content;
-  if (image) content = `![${image.credit}](${image.url}) *[${image.credit}](${image.link})* ` + content;
+  if (image) content = `![${image.credit}](${image.url}) ` + content;
   const slug = (data.slug + '-' + Date.now()).replace(/[^A-Za-z0-9\-_.~]/g, '').toLowerCase();
-  const response = await axios.post(
-    `${STRAPI_URL}/api/posts`,
-    { data: { title: data.title, slug, category: data.category, article_markdown: content, published_at: new Date().toISOString() } },
-    { headers: { Authorization: `Bearer ${STRAPI_API_TOKEN}`, 'Content-Type': 'application/json' } }
-  );
-  return response.data;
+  return retry(async () => {
+    const response = await axios.post(
+      `${STRAPI_URL}/api/posts`,
+      { data: { title: data.title, slug, category: data.category, article_markdown: content, published_at: new Date().toISOString() } },
+      { headers: { Authorization: `Bearer ${STRAPI_API_TOKEN}`, 'Content-Type': 'application/json' } }
+    );
+    console.log('Strapi response status:', response.status);
+    return response.data;
+  });
 }
 
 async function processMessage(chatId, text) {
   const trimmed = text.trim();
-  if (trimmed === '포스팅') {
-    await sendMessage(chatId, '⏳ 포스팅 자동 생성 중입니다...');
-    const cats = Object.values(categories);
-    const cat = cats[Math.floor(Math.random() * cats.length)];
-    const topics = ['숨겨진 맛집 3곳', '포토스팟 TOP 3', '길거리 음식 완전 정복', '가성비 숙소 TOP 3'];
-    const topic = cat + ' ' + topics[Math.floor(Math.random() * topics.length)];
-    const [data, image] = await Promise.all([generatePost(topic), getUnsplashImage(topic)]);
-    const post = await createPost(data, image);
-    await sendMessage(chatId, `✅ 포스팅 완료! <b>${data.title}</b> 🔗 https://vietnam-magazine.vercel.app/posts/${post.data?.attributes?.slug || ''}`);
-  } else {
+  try {
     await sendMessage(chatId, `⏳ "${trimmed}" 포스팅 생성 중입니다...`);
     const [data, image] = await Promise.all([generatePost(trimmed), getUnsplashImage(trimmed)]);
     const post = await createPost(data, image);
-    await sendMessage(chatId, `✅ 포스팅 완료! <b>${data.title}</b> 🔗 https://vietnam-magazine.vercel.app/posts/${post.data?.attributes?.slug || ''}`);
+    const slug = post.data && post.data.attributes ? post.data.attributes.slug : '';
+    await sendMessage(chatId, `✅ 포스팅 완료! <b>${data.title}</b> 🔗 https://vietnam-magazine.vercel.app/posts/${slug}`);
+  } catch (e) {
+    console.error('processMessage error:', e.message);
+    await sendMessage(chatId, `❌ 오류 발생: ${e.message}`);
   }
 }
 
@@ -100,19 +121,15 @@ async function startPolling() {
   while (true) {
     try {
       const res = await axios.get(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates`, { params: { offset, timeout: 30 } });
-      const updates = res.data.result;
-      for (const update of updates) {
+      for (const update of res.data.result) {
         offset = update.update_id + 1;
-        if (update.message?.text) {
-          const chatId = update.message.chat.id;
-          const text = update.message.text;
-          if (text.startsWith('/')) continue;
-          processMessage(chatId, text).catch(e => sendMessage(chatId, '❌ 오류 발생: ' + e.message));
+        if (update.message && update.message.text && !update.message.text.startsWith('/')) {
+          processMessage(update.message.chat.id, update.message.text);
         }
       }
     } catch (e) {
       console.error('Polling error:', e.message);
-      await new Promise(r => setTimeout(r, 5000));
+      await sleep(5000);
     }
   }
 }
