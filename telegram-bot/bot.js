@@ -82,11 +82,11 @@ function extractJson(raw) {
 
 async function generatePost(topic) {
   return retry(async () => {
-    const prompt = `You must respond with ONLY a valid JSON object. No markdown, no code blocks, no backticks. Just raw JSON. Topic: "${topic}" Write a Korean travel magazine article about this topic in Vietnam. Rules: - Korean language only for title and content - English only for slug (lowercase, hyphens only) - Include real place info if applicable (price, location, hours) - Markdown format with ## headings in content - Minimum 800 characters for content - Friendly Korean tone - End content with 💡 여행 꿀팁 section Return ONLY this JSON (absolutely no backticks or extra text): {"title":"한국어 제목","slug":"english-slug","category":"city","content":"markdown"} category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne`;
+    const prompt = `You must respond with ONLY a valid JSON object. No markdown, no code blocks, no backticks. Just raw JSON. Topic: "${topic}" Write a Korean travel magazine article about this topic in Vietnam. Rules: - Korean language only for title and content - English only for slug (lowercase, hyphens only) - Include real place info if applicable (price, location, hours) - Markdown format with ## headings in content - Minimum 500 characters for content - Friendly Korean tone - End content with 💡 여행 꿀팁 section Return ONLY this JSON (absolutely no backticks or extra text): {"title":"한국어 제목","slug":"english-slug","category":"city","content":"markdown"} category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne`;
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 2000, temperature: 0.5 } }
+      { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 8192, temperature: 0.5 } }
     );
 
     const raw = response.data.candidates[0].content.parts[0].text;
@@ -98,7 +98,7 @@ async function generatePost(topic) {
 function validatePostData(data) {
   if (!data.title || data.title.length < 2) throw new Error('Invalid title');
   if (!data.slug) throw new Error('Invalid slug');
-  if (!data.content || data.content.length < 100) throw new Error('Content too short');
+  if (!data.content || data.content.length < 500) throw new Error('Content too short');
   if (!ALLOWED_CATEGORIES.includes(data.category)) data.category = 'ho-chi-minh';
   return data;
 }
