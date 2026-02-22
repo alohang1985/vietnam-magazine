@@ -33,21 +33,23 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
   return (
     <article className="post-article">
-      <div className="post-hero">
-        <Image src={img} alt={attr.title} fill style={{ objectFit: 'cover' }} />
-        <div className="hero-overlay">
-          <div className="hero-inner">
-            <div className="hero-badge">{attr.category}</div>
-            <h1 className="hero-title">{attr.title}</h1>
-          </div>
+      <div style={{width:'100%',height:400,overflow:'hidden'}}>
+        <Image src={img} alt={attr.title} width={1200} height={400} style={{objectFit:'cover',width:'100%',height:'400px'}} />
+      </div>
+
+      <div style={{maxWidth:720,margin:'18px auto 0',padding:'0 18px'}}>
+        <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:8}}>
+          <div style={{background:'#e8f9ee',color: 'var(--travel-green)',padding:'6px 10px',borderRadius:999,fontWeight:700,fontSize:12}}>{attr.category}</div>
+          <div style={{color:'#666',fontSize:13}}>{attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''}</div>
         </div>
+        <h1 style={{fontSize:32,fontWeight:800,color:'#000',margin:'8px 0 18px'}}>{attr.title}</h1>
       </div>
 
       <div className="post-content">
         <div className="post-meta">{attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''}</div>
-        <div className="prose-area">
+        <div className="prose-area" style={{background:'#fff',color:'#222',padding:'12px',borderRadius:8}}>
           <section style={{maxWidth: '720px', margin: '0 auto', fontSize: '17px', lineHeight: '1.9', color: '#333'}}>
-        <ReactMarkdown components={{ h2: ({children}) => <h2 style={{fontSize: '22px', fontWeight: 'bold', color: '#1a6b54', borderLeft: '4px solid #1a6b54', paddingLeft: '12px', margin: '32px 0 16px'}}>{children}</h2>, h3: ({children}) => <h3 style={{fontSize: '18px', fontWeight: 'bold', margin: '24px 0 12px'}}>{children}</h3>, p: ({children}) => <p style={{marginBottom: '20px', lineHeight: '1.9'}}>{children}</p>, strong: ({children}) => <strong style={{color: '#1a6b54', fontWeight: 'bold'}}>{children}</strong>, ul: ({children}) => <ul style={{paddingLeft: '24px', marginBottom: '20px'}}>{children}</ul>, li: ({children}) => <li style={{marginBottom: '8px', lineHeight: '1.8'}}>{children}</li>, img: ({src, alt}) => <img src={src} alt={alt} style={{width: '100%', borderRadius: '12px', margin: '24px 0', objectFit: 'cover'}} />, a: ({href, children}) => <a href={href} style={{color: '#1a6b54', textDecoration: 'underline'}} target="_blank" rel="noopener noreferrer">{children}</a>, }} >{attr.article_markdown || ''}</ReactMarkdown>
+        <ReactMarkdown components={{ h2: ({children}) => <h2 style={{fontSize: '22px', fontWeight: 'bold', color: '#000', borderLeft: '4px solid #1a6b54', paddingLeft: '12px', margin: '32px 0 16px'}}>{children}</h2>, h3: ({children}) => <h3 style={{fontSize: '18px', fontWeight: 'bold', margin: '24px 0 12px'}}>{children}</h3>, p: ({children}) => <p style={{marginBottom: '20px', lineHeight: '1.9'}}>{children}</p>, strong: ({children}) => <strong style={{color: '#000', fontWeight: 'bold'}}>{children}</strong>, ul: ({children}) => <ul style={{paddingLeft: '24px', marginBottom: '20px'}}>{children}</ul>, li: ({children}) => <li style={{marginBottom: '8px', lineHeight: '1.8'}}>{children}</li>, img: ({src, alt}) => <img src={src} alt={alt} style={{width: '100%', borderRadius: '12px', margin: '24px 0', objectFit: 'cover'}} />, a: ({href, children}) => <a href={href} style={{color: '#000', textDecoration: 'underline'}} target="_blank" rel="noopener noreferrer">{children}</a>, }} >{attr.article_markdown || ''}</ReactMarkdown>
       </section>
         </div>
         <div className="other-links">
