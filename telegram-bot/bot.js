@@ -41,12 +41,14 @@ async function generatePost(topic) {
 
   const response = await axios.post(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    { contents: [{ parts: [{ text: prompt }] }] }
+    { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 3000, temperature: 0.7 } }
   );
 
-  const text = response.data.candidates[0].content.parts[0].text;
-  const cleaned = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(cleaned);
+  const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const cleaned = (text || '').replace(/```json|```/g, '').trim();
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('JSON not found in response');
+  return JSON.parse(jsonMatch[0]);
 }
 
 async function createPost(data, image) {
