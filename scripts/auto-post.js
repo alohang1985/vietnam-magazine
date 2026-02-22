@@ -5,7 +5,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const categories = ['phu-quoc','nha-trang','da-nang','ho-chi-minh','hanoi','ha-long','dalat','hoi-an','sapa','mui-ne'];
 
 async function generateContent(category) {
-  const prompt = `베트남 여행 잡지 기사를 한국어로 작성해줘. 카테고리: ${category}. 제목, 슬러그(영어 소문자 하이픈), 본문(마크다운, 최소 800자) 형식으로 아래 JSON만 반환해줘 (다른 텍스트 없이): {"title":"제목","slug":"slug-here","content":"마크다운 본문"}`;
+  const prompt = `당신은 베트남 현지를 잘 아는 여행 전문 에디터입니다. 아래 카테고리에 대한 베트남 여행 매거진 기사를 한국어로 작성해주세요. 카테고리: ${category} 반드시 포함해야 할 내용: 1. 현지인처럼 즐기는 추천 루트 (오전/오후/저녁 일정) 2. 꼭 가봐야 할 식당 3곳 이상 (식당명, 추천 메뉴, 가격대, 위치) 3. 숨겨진 명소 또는 현지인만 아는 스팟 4. 실용적인 여행 팁 (교통, 최적 방문 시간, 주의사항) 5. 예상 예산 글 형식: - 마크다운 사용 - 소제목(##)으로 섹션 구분 - 최소 1500자 이상 - 독자에게 직접 말하는 친근한 어투 - 구체적인 장소명, 가격, 시간 포함 아래 JSON만 반환해줘 (다른 텍스트 없이): {"title":"제목","slug":"slug-here","content":"마크다운 본문"}`;
 
   const response = await axios.post(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
