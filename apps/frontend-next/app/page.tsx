@@ -55,7 +55,7 @@ export default async function Home() {
             {posts.map((p:any)=>{
               const attr = p.attributes
               const img = attr.hero_image?.url || unsplash[attr.category] || unsplash['phu-quoc']
-              const preview = (attr.article_markdown || '').replace(/[#*>`]/g,'').slice(0,160)
+              const preview = attr.article_markdown ? attr.article_markdown.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*`>\-]/g, '').replace(/ /g, ' ').trim().slice(0, 120) + '...' : ''
               const date = attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''
               return (
                 <article key={p.id} className="card-article overflow-hidden">
