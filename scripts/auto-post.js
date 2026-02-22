@@ -18,12 +18,19 @@ async function generateContent(category) {
 }
 
 async function createPost(data, category) {
-  const response = await axios.post(
-    `${STRAPI_URL}/api/posts`,
-    { data: { title: data.title, slug: data.slug, category: category, article_markdown: data.content, published_at: new Date().toISOString() } },
-    { headers: { Authorization: `Bearer ${STRAPI_API_TOKEN}`, 'Content-Type': 'application/json' } }
-  );
-  return response.data;
+  try {
+    const response = await axios.post(
+      `${STRAPI_URL}/api/posts`,
+      { data: { title: data.title, slug: data.slug, category: category, article_markdown: data.content, published_at: new Date().toISOString() } },
+      { headers: { Authorization: `Bearer ${STRAPI_API_TOKEN}`, 'Content-Type': 'application/json' } }
+    );
+    return response.data;
+  } catch (err) {
+    console.error('Strapi error status:', err.response?.status);
+    console.error('Strapi error data:', JSON.stringify(err.response?.data, null, 2));
+    console.error('Strapi URL used:', `${STRAPI_URL}/api/posts`);
+    throw err;
+  }
 }
 
 async function main() {
