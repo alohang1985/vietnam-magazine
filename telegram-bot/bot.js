@@ -51,13 +51,31 @@ async function getUnsplashImage(query) {
 }
 
 function extractJson(raw) {
-  const cleaned = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+  console.log('Raw response:', (raw||'').slice(0, 300));
+  const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
   try {
     return JSON.parse(cleaned);
   } catch (e1) {}
-  const match = cleaned.match(/\{[\s\S]*\}/);
+  const match = cleaned.match(/\{(?:[^{}]|[\s\S])*\}/);
   if (match) {
-    try { return JSON.parse(match[0]); } catch (e2) {}
+    try {
+      return JSON.parse(match[0]);
+    } catch (e2) {
+      console.error('JSON parse error:', e2.message);
+      console.error('Matched string:', match[0].slice(0, 300));
+    }
+  }
+  const titleMatch = raw.match(/"title"\s*:\s*"([^"]+)"/);
+  const slugMatch = raw.match(/"slug"\s*:\s*"([^"]+)"/);
+  const categoryMatch = raw.match(/"category"\s*:\s*"([^"]+)"/);
+  const contentMatch = raw.match(/"content"\s*:\s*"([\s\S]+?)"\s*[,}]/);
+  if (titleMatch && slugMatch && contentMatch) {
+    return {
+      title: titleMatch[1],
+      slug: slugMatch[1],
+      category: categoryMatch ? categoryMatch[1] : 'ho-chi-minh',
+      content: contentMatch[1].replace(/\ /g, ' ').replace(/\"/g, '"')
+    };
   }
   throw new Error('Failed to parse JSON from Gemini response');
 }
