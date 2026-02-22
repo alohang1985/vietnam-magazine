@@ -1,0 +1,23 @@
+name: Auto Post
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # 오전 8시 (베트남 UTC+7)
+    - cron: '0 6 * * *' # 오후 1시 (베트남 UTC+7)
+    - cron: '0 12 * * *' # 저녁 7시 (베트남 UTC+7)
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm install axios @google/generative-ai
+      - run: node scripts/auto-post.js
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          STRAPI_API_TOKEN: ${{ secrets.STRAPI_API_TOKEN }}
+          STRAPI_URL: https://vietnam-magazine-production.up.railway.app
