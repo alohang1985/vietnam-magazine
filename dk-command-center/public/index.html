@@ -55,12 +55,17 @@
 
     <div class="panel right">
       <h3>OpenClaw 작업 지시</h3>
-      <div style="display:flex;gap:8px;margin-bottom:8px">
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
         <select id="task-select"></select>
-        <button id="preview" class="btn">명령 미리보기</button>
-        <button id="exec" class="btn">실행</button>
+        <button id="preview" class="btn">미리보기</button>
+        <button id="exec" class="btn">OpenClaw 복사 & 열기</button>
       </div>
       <div id="cmd-preview" style="background:#fafafa;padding:10px;border-radius:8px;border:1px solid #f0f0f0;min-height:40px"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+        <input id="free-input" placeholder="자유 명령 입력 (OpenClaw 프롬프트)" style="flex:1;padding:8px" />
+        <button id="free-run" class="btn">복사 & 열기</button>
+      </div>
+      <div id="toast" style="position:fixed;top:20px;right:20px;padding:12px 16px;background:var(--teal);color:#fff;border-radius:8px;display:none">복사됨</div>
 
       <h4>실행 로그</h4>
       <div id="logs" style="height:300px;overflow:auto;background:#fff;border-radius:8px;padding:8px;border:1px solid #eee"></div>
@@ -80,7 +85,7 @@
     async function loadTasks(){
       const res = await fetch('/api/tasks'); const tasks = await res.json();
       const sel = document.getElementById('task-select'); sel.innerHTML = '';
-      tasks.forEach(t=>{ const o = document.createElement('option'); o.value = t.cmd; o.textContent = t.name + ' ('+t.category+')'; sel.appendChild(o); });
+      tasks.forEach(t=>{ const o = document.createElement('option'); o.value = t.prompt || t.cmd || ''; o.textContent = t.name + ' ('+t.category+')'; sel.appendChild(o); });
     }
 
     async function loadTodo(){ const res = await fetch('/api/todo'); const todos = await res.json(); const ul = document.getElementById('todo'); ul.innerHTML=''; todos.forEach((td,i)=>{ const li=document.createElement('li'); li.textContent = (td.done? '✅ ':'') + td.text; const btnDone=document.createElement('button'); btnDone.textContent='완료'; btnDone.style.marginLeft='8px'; btnDone.onclick=async ()=>{ await fetch('/api/todo/'+i+'/done',{method:'POST'}); loadTodo(); }; const btnDel=document.createElement('button'); btnDel.textContent='삭제'; btnDel.style.marginLeft='8px'; btnDel.onclick=async ()=>{ if(!confirm('삭제하시겠습니까?')) return; await fetch('/api/todo/'+i,{method:'DELETE'}); loadTodo(); }; li.appendChild(btnDone); li.appendChild(btnDel); ul.appendChild(li); }); }
@@ -95,17 +100,28 @@
     document.getElementById('cal-add').addEventListener('click', async ()=>{ const date=document.getElementById('cal-date').value; const text=document.getElementById('cal-text').value; if(!date||!text) return alert('날짜와 내용을 입력하세요'); await fetch('/api/calendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,text})}); document.getElementById('cal-date').value=''; document.getElementById('cal-text').value=''; loadCalendar(); });
     // run preview/execute
     document.getElementById('preview').addEventListener('click', async ()=>{
-      const cmd = document.getElementById('task-select').value;
-      const name = document.getElementById('task-select').selectedOptions[0].text;
-      const res = await fetch('/api/run/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,cmd})}); const j=await res.json(); document.getElementById('cmd-preview').textContent = j.cmd || '없음';
+      const prompt = document.getElementById('task-select').value;
+      document.getElementById('cmd-preview').textContent = prompt || '없음';
     });
 
+    async function copyAndOpen(promptText){
+      try{
+        await navigator.clipboard.writeText(promptText);
+        const toast = document.getElementById('toast'); toast.textContent = '클립보드에 복사됨 — OpenClaw 창에서 Cmd+V 후 엔터'; toast.style.display='block'; setTimeout(()=>toast.style.display='none',4000);
+        window.open('http://127.0.0.1:18789','_blank');
+      }catch(e){ alert('클립보드 복사 실패: '+e.message); }
+    }
+
     document.getElementById('exec').addEventListener('click', async ()=>{
-      const cmd = document.getElementById('task-select').value;
-      const name = document.getElementById('task-select').selectedOptions[0].text;
-      if(!confirm('실행하시겠습니까?\n'+cmd)) return;
-      const res = await fetch('/api/run/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,cmd})}); const j=await res.json();
-      if(j.ok){ const ln = document.getElementById('logs'); const a = document.createElement('a'); a.href=j.log; a.textContent = '실행 로그: '+j.log; a.target='_blank'; ln.prepend(a); ln.prepend(document.createElement('br')); }
+      const prompt = document.getElementById('task-select').value;
+      if(!prompt) return alert('프롬프트가 비어있습니다');
+      copyAndOpen(prompt);
+    });
+
+    document.getElementById('free-run').addEventListener('click', async ()=>{
+      const prompt = document.getElementById('free-input').value;
+      if(!prompt) return alert('입력하세요');
+      copyAndOpen(prompt);
     });
 
     async function init(){ await loadTasks(); await loadTodo(); await loadNotes(); await loadCalendar(); }

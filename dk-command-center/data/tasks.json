@@ -1,6 +1,32 @@
 [
-  { "name": "전체 프로젝트 상태 체크", "cmd": "echo 'Checking all projects...'", "category": "project" },
-  { "name": "Railway 재배포 트리거", "cmd": "echo 'Trigger Railway deploy'", "category": "project" },
-  { "name": "Strapi 백업", "cmd": "echo 'Strapi backup'", "category": "project" },
-  { "name": "베트남 블로그 3개 생성", "cmd": "echo 'Create 3 blog posts'", "category": "content" }
+  {
+    "name": "베트남 블로그 3개 생성",
+    "category": "content",
+    "prompt": "Please generate 3 Korean travel magazine-style draft posts about Vietnam. Each post should have a title, slug (english lowercase hyphen), category (one of phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne), and a markdown body of at least 400 words including ## headings and a 💡 여행 꿀팁 section. Keep factual place names and include a short Google Maps link placeholder."
+  },
+  {
+    "name": "전체 프로젝트 상태 체크",
+    "category": "project",
+    "prompt": "Check the status of all local projects on this Mac Mini. For each project (vietnam-magazine, tourpik, strapi, other services), report: process running (pm2/ps), last git commit hash on main, Docker/Railway deployment status if available, and any error logs in the last 24 hours. Return a short summary and suggested next actions."
+  },
+  {
+    "name": "Railway 배포 상태 확인",
+    "category": "project",
+    "prompt": "Check Railway deployment status for known services: vietnam-magazine, api, frontend. Describe whether each service is deployed, healthy, and the latest deployment time. Include commands to trigger a redeploy if needed."
+  },
+  {
+    "name": "Strapi CMS 콘텐츠 현황 확인",
+    "category": "project",
+    "prompt": "Provide an overview of Strapi CMS content counts: total posts, posts published today, media count, and any recent upload errors. Also suggest if a content backup is recommended and provide the Strapi export commands."
+  },
+  {
+    "name": "Tourpik 챗봇 상태 확인",
+    "category": "project",
+    "prompt": "Check the Tourpik chatbot server: confirm if process is running, API responsiveness (sample health endpoint), recent errors in logs, and whether message queues are processed. Return clear next steps if issues are found."
+  },
+  {
+    "name": "버그 찾아서 고쳐줘",
+    "category": "code",
+    "prompt": "I will provide a file path. Please analyze the code in that file for obvious bugs (syntax errors, wrong API usage, potential null refs). Provide a patch suggestion or exact code changes. Start by asking for the file path."
+  }
 ]
