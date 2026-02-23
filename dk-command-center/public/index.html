@@ -38,6 +38,11 @@
 
       <div class="panel">
         <h3>달력</h3>
+        <div id="calendar-controls" style="margin-bottom:8px">
+          <input id="cal-date" type="date" />
+          <input id="cal-text" placeholder="일정 내용" style="width:60%;padding:6px;margin-left:8px" />
+          <button id="cal-add" class="btn" style="margin-left:8px">추가</button>
+        </div>
         <div id="calendar">(달력 위젯)</div>
       </div>
 
@@ -82,11 +87,12 @@
     document.getElementById('todo-add').addEventListener('click', async ()=>{ const v=document.getElementById('todo-input').value; if(!v) return; await fetch('/api/todo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:v})}); document.getElementById('todo-input').value=''; loadTodo(); });
 
     // notes
-    async function loadNotes(){ const res = await fetch('/api/notes'); const notes = await res.json(); const area=document.getElementById('quick-note'); area.value = notes && notes[0] ? notes[0].text : ''; const list=document.getElementById('notes-list'); if(list){ list.innerHTML=''; notes.forEach((n,i)=>{ const li=document.createElement('div'); li.textContent = n.text + ' ('+ new Date(n.created_at).toLocaleString() +')'; const del=document.createElement('button'); del.textContent='삭제'; del.style.marginLeft='8px'; del.onclick=async ()=>{ if(!confirm('삭제?')) return; await fetch('/api/notes/'+i,{method:'DELETE'}); loadNotes(); }; li.appendChild(del); list.appendChild(li); }); }}
+    async function loadNotes(){ const res = await fetch('/api/notes'); const notes = await res.json(); const area=document.getElementById('quick-note'); area.value = notes && notes[0] ? notes[0].text : ''; const list=document.getElementById('notes-list'); if(list){ list.innerHTML=''; notes.forEach((n,i)=>{ const wrapper=document.createElement('div'); wrapper.style.display='flex'; wrapper.style.alignItems='center'; wrapper.style.gap='8px'; const txt=document.createElement('input'); txt.value = n.text; txt.style.flex='1'; const saveBtn=document.createElement('button'); saveBtn.textContent='수정'; saveBtn.onclick=async ()=>{ await fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt.value})}); loadNotes(); }; const del=document.createElement('button'); del.textContent='삭제'; del.onclick=async ()=>{ if(!confirm('삭제?')) return; await fetch('/api/notes/'+i,{method:'DELETE'}); loadNotes(); }; wrapper.appendChild(txt); wrapper.appendChild(saveBtn); wrapper.appendChild(del); list.appendChild(wrapper); }); }}
     document.getElementById('save-note').addEventListener('click', async ()=>{ const v=document.getElementById('quick-note').value; await fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:v})}); loadNotes(); });
 
     // calendar
     async function loadCalendar(){ const res = await fetch('/api/calendar'); const cal = await res.json(); const el=document.getElementById('calendar'); el.innerHTML=''; cal.forEach((c,i)=>{ const d=document.createElement('div'); d.textContent = c.date + ' - ' + c.text; const del=document.createElement('button'); del.textContent='삭제'; del.style.marginLeft='8px'; del.onclick=async ()=>{ if(!confirm('삭제?')) return; await fetch('/api/calendar/'+i,{method:'DELETE'}); loadCalendar(); }; d.appendChild(del); el.appendChild(d); }); }
+    document.getElementById('cal-add').addEventListener('click', async ()=>{ const date=document.getElementById('cal-date').value; const text=document.getElementById('cal-text').value; if(!date||!text) return alert('날짜와 내용을 입력하세요'); await fetch('/api/calendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,text})}); document.getElementById('cal-date').value=''; document.getElementById('cal-text').value=''; loadCalendar(); });
     // run preview/execute
     document.getElementById('preview').addEventListener('click', async ()=>{
       const cmd = document.getElementById('task-select').value;
