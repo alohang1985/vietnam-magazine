@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function AdminPostPage() {
   const [text, setText] = useState('');
@@ -45,6 +45,11 @@ export default function AdminPostPage() {
       console.error(e);
     }
   }
+
+  // 자동으로 인증 후 포스트 불러오기
+  useEffect(() => {
+    if (authChecked) loadPosts();
+  }, [authChecked]);
 
   async function handleSubmit(e) {
     e.preventDefault();
