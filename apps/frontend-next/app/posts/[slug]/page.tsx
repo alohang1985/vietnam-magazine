@@ -36,6 +36,32 @@ export default async function PostPage({ params }: { params: { slug: string } })
   const creditLine = creditMatch ? creditMatch[0] : null
   const cleanContent = content.replace(/!\[.*?\]\(.*?\) \*\[Photo by .+? on Unsplash\]\(.+?\)\* /, '')
 
+  // Server-side fetch 2 images from Unsplash (uses UNSPLASH_ACCESS_KEY env var)
+  let unsplashImgs: { url: string; credit: string }[] = [];
+  try {
+    const UNSPLASH_KEY = process.env.UNSPLASH_ACCESS_KEY;
+    if (UNSPLASH_KEY) {
+      const q = encodeURIComponent(`${attr.category} vietnam`);
+      const ures = await fetch(`https://api.unsplash.com/search/photos?query=${q}&per_page=2&orientation=landscape`, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` }, cache: 'no-store' });
+      if (ures.ok) {
+        const uj = await ures.json();
+        unsplashImgs = (uj.results || []).slice(0,2).map((r: any) => ({ url: (r.urls && r.urls.regular) || r.url, credit: `Photo by ${r.user && r.user.name} on Unsplash` }));
+      }
+    }
+  } catch (e) { console.error('Unsplash fetch error', e.message); }
+
+  // Inject images into content: after first paragraph
+  let renderedContent = cleanContent;
+  if (unsplashImgs.length) {
+    const parts = cleanContent.split('\n\n');
+    if (parts.length > 1) {
+      parts.splice(1, 0, unsplashImgs.map(i => `![](${i.url})`).join('\n\n'))
+      renderedContent = parts.join('\n\n')
+    } else {
+      renderedContent = cleanContent + '\n\n' + unsplashImgs.map(i => `![](${i.url})`).join('\n\n')
+    }
+  }
+
   return (
     <article className="post-article">
       <div style={{width:'100%',height:400,overflow:'hidden'}}>
