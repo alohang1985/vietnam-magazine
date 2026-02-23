@@ -55,13 +55,13 @@ export default function AdminPostPage() {
         res = await fetch(`/api/admin/posts/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ article_markdown: text })
+          body: JSON.stringify({ article_markdown: text, hero_image: mainImage })
         });
       } else {
         res = await fetch('/api/admin/post', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: text })
+          body: JSON.stringify({ content: text, hero_image: mainImage })
         });
       }
       const json = await res.json();
