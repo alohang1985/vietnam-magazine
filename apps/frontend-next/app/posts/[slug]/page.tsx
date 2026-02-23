@@ -63,34 +63,44 @@ export default async function PostPage({ params }: { params: { slug: string } })
   }
 
   return (
-    <article className="post-article">
-      <div style={{width:'100%',height:400,overflow:'hidden'}}>
-        <Image src={img} alt={attr.title} width={1200} height={400} style={{objectFit:'cover',width:'100%',height:'400px'}} />
+    <article style={{background:'#fff',minHeight:'100vh',color:'#1a1a2e',fontFamily:'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial'}}>
+      <div style={{width:'100%',height:500,overflow:'hidden'}}>
+        <Image src={img} alt={attr.title} width={1600} height={500} style={{objectFit:'cover',width:'100%',height:'500px'}} />
       </div>
 
-      <div style={{maxWidth:720,margin:'18px auto 0',padding:'0 18px'}}>
-        <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:8}}>
-          <div style={{background:'#e8f9ee',color: 'var(--travel-green)',padding:'6px 10px',borderRadius:999,fontWeight:700,fontSize:12}}>{attr.category}</div>
-          <div style={{color:'#666',fontSize:13}}>{attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''}</div>
-        </div>
-        <h1 style={{fontSize:32,fontWeight:800,color:'#000',margin:'8px 0 18px'}}>{attr.title}</h1>
-      </div>
+      <div style={{maxWidth:920,margin:'-60px auto 0',padding:'0 18px'}}>
+        <div style={{background:'#fff',padding:24,borderRadius:12,boxShadow:'0 8px 24px rgba(26,26,46,0.08)'}}>
+          <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:12}}>
+            <div style={{background:'#2a9d8f',color:'#fff',padding:'6px 10px',borderRadius:999,fontWeight:700,fontSize:12}}>{attr.category}</div>
+            <div style={{color:'#666',fontSize:13}}>{attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''}</div>
+          </div>
+          <h1 style={{fontSize:40,fontWeight:900,color:'#1a1a2e',margin:'6px 0 18px'}}>{attr.title}</h1>
 
-      <div className="post-content">
-        <div className="post-meta">{attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''}</div>
-        <div className="prose-area" style={{background:'#fff',color:'#222',padding:'12px',borderRadius:8}}>
-          <section style={{maxWidth: '720px', margin: '0 auto', fontSize: '17px', lineHeight: '1.9', color: '#333'}}>
-        <ReactMarkdown components={{ h2: ({children}) => <h2 style={{fontSize: '22px', fontWeight: 'bold', color: '#000', borderLeft: '4px solid #1a6b54', paddingLeft: '12px', margin: '32px 0 16px'}}>{children}</h2>, h3: ({children}) => <h3 style={{fontSize: '18px', fontWeight: 'bold', margin: '24px 0 12px'}}>{children}</h3>, p: ({children}) => <p style={{marginBottom: '20px', lineHeight: '1.9'}}>{children}</p>, strong: ({children}) => <strong style={{color: '#000', fontWeight: 'bold'}}>{children}</strong>, ul: ({children}) => <ul style={{paddingLeft: '24px', marginBottom: '20px'}}>{children}</ul>, li: ({children}) => <li style={{marginBottom: '8px', lineHeight: '1.8'}}>{children}</li>, img: ({src, alt}) => <img src={src} alt={alt} style={{width: '100%', borderRadius: '12px', margin: '24px 0', objectFit: 'cover'}} />, a: ({href, children}) => <a href={href} style={{color: '#000', textDecoration: 'underline'}} target="_blank" rel="noopener noreferrer">{children}</a>, }} >{cleanContent}</ReactMarkdown>
-      </section>
+          <div className="prose-area" style={{background:'#fff',color:'#222',padding:'12px',borderRadius:8}}>
+            <section style={{maxWidth:720,margin:'0 auto',fontSize:18,lineHeight:1.9,color:'#333'}}>
+              <ReactMarkdown components={{
+                h2: ({children}) => <h2 style={{fontSize:22,fontWeight:700,color:'#2a9d8f',borderLeft:'4px solid #2a9d8f',paddingLeft:12,margin:'32px 0 16px'}}>{children}</h2>,
+                h3: ({children}) => <h3 style={{fontSize:18,fontWeight:700,margin:'24px 0 12px'}}>{children}</h3>,
+                p: ({children}) => <p style={{marginBottom:20,lineHeight:1.9}}>{children}</p>,
+                strong: ({children}) => <strong style={{color:'#1a1a2e',fontWeight:800}}>{children}</strong>,
+                ul: ({children}) => <ul style={{paddingLeft:24,marginBottom:20}}>{children}</ul>,
+                li: ({children}) => <li style={{marginBottom:8,lineHeight:1.8}}>{children}</li>,
+                img: ({src, alt}) => <img src={src} alt={alt} style={{width:'100%',borderRadius:16,margin:'24px 0',objectFit:'cover'}} />,
+                a: ({href, children}) => <a href={href} style={{color:'#1a1a2e',textDecoration:'underline'}} target="_blank" rel="noopener noreferrer">{children}</a>,
+              }} >{renderedContent}</ReactMarkdown>
+            </section>
+          </div>
+
+          <div style={{marginTop:18,textAlign:'right'}}>
+            <a href="/" style={{color:'#1a1a2e',textDecoration:'underline'}}>다른 여행지 보기</a>
+          </div>
+
+          {creditLine && (
+            <p style={{fontSize:11,color:'#bbb',marginTop:24,textAlign:'right'}}>
+              <ReactMarkdown>{creditLine}</ReactMarkdown>
+            </p>
+          )}
         </div>
-        <div className="other-links">
-          <a href="/" className="btn">다른 여행지 보기</a>
-        </div>
-        {creditLine && (
-          <p style={{fontSize: '11px', color: '#bbb', marginTop: '40px', textAlign: 'right'}}>
-            <ReactMarkdown>{creditLine}</ReactMarkdown>
-          </p>
-        )}
       </div>
 
     </article>

@@ -6,29 +6,16 @@ import Image from 'next/image'
 const CMS_URL = process.env.NEXT_PUBLIC_CMS_URL || 'http://localhost:1337'
 
 const unsplash = {
-  'phu-quoc': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600',
-  'nha-trang': 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=600',
-  'da-nang': 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=600',
-  'ho-chi-minh': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600',
-  'hanoi': 'https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?w=600',
-  'ha-long': 'https://images.unsplash.com/photo-1528127269322-539801943592?w=600',
-  'dalat': 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600',
-  'hoi-an': 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=600',
-  'sapa': 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=600',
-  'mui-ne': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600'
-}
-
-const categoryColor: Record<string,string> = {
-  'phu-quoc':'bg-amber-200 text-amber-800',
-  'nha-trang':'bg-sky-100 text-sky-800',
-  'da-nang':'bg-indigo-100 text-indigo-800',
-  'ho-chi-minh':'bg-rose-100 text-rose-800',
-  'hanoi':'bg-lime-100 text-lime-800',
-  'ha-long':'bg-cyan-100 text-cyan-800',
-  'dalat':'bg-pink-100 text-pink-800',
-  'hoi-an':'bg-orange-100 text-orange-800',
-  'sapa':'bg-emerald-100 text-emerald-800',
-  'mui-ne':'bg-yellow-100 text-yellow-800'
+  'phu-quoc': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200',
+  'nha-trang': 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=1200',
+  'da-nang': 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=1200',
+  'ho-chi-minh': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1200',
+  'hanoi': 'https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?w=1200',
+  'ha-long': 'https://images.unsplash.com/photo-1528127269322-539801943592?w=1200',
+  'dalat': 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=1200',
+  'hoi-an': 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=1200',
+  'sapa': 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=1200',
+  'mui-ne': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200'
 }
 
 export default async function Home() {
@@ -41,44 +28,47 @@ export default async function Home() {
   } catch (e) { posts = [] }
 
   return (
-    <>
-      <section className="hero-banner">
-        <div className="hero-inner">
-          <h1>베트남 여행의 모든 것</h1>
-          <p>현지 에디터가 전하는 일정, 맛집, 숨은 명소와 예산 팁</p>
+    <main style={{background:'#ffffff',minHeight:'100vh',color:'#1a1a2e',fontFamily:'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial'}}>
+      <section style={{background:'#1a1a2e',color:'#fff',padding:'84px 20px'}}>
+        <div style={{maxWidth:1100,margin:'0 auto'}}>
+          <h1 style={{fontSize:48,margin:0,fontWeight:800}}>베트남 여행의 모든 것</h1>
+          <p style={{marginTop:12,fontSize:18,color:'#cfd8dc'}}>현지 에디터가 전하는 일정, 맛집, 숨은 명소와 예산 팁</p>
         </div>
       </section>
 
-      <section className="posts-grid container">
-        {posts.length === 0 ? (<div className="empty">게시물이 없습니다.</div>) : (
-          <div className="grid">
-            {posts.map((p:any)=>{
+      <section style={{maxWidth:1100,margin:'40px auto',padding:'0 20px'}}>
+        <h2 style={{color:'#1a1a2e',fontSize:22,marginBottom:18}}>추천 게시물</h2>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:24}}>
+          {posts.length === 0 ? (<div style={{gridColumn:'1/-1',padding:40,textAlign:'center'}}>게시물이 없습니다.</div>) : (
+            posts.map((p:any)=>{
               const attr = p.attributes
               const img = attr.hero_image?.url || unsplash[attr.category] || unsplash['phu-quoc']
-              const preview = attr.article_markdown ? attr.article_markdown.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*`>\-]/g, '').replace(/ /g, ' ').trim().slice(0, 120) + '...' : ''
+              const preview = attr.article_markdown ? attr.article_markdown.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*`>\-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 140) : ''
               const date = attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''
               return (
-                <article key={p.id} className="card-article overflow-hidden">
-                  <Link href={`/posts/${attr.slug}`} className="card-media-link">
+                <article key={p.id} style={{background:'#fff',borderRadius:12,boxShadow:'0 4px 12px rgba(26,26,46,0.06)',overflow:'hidden',transition:'transform 180ms ease',display:'flex',flexDirection:'column'}}>
+                  <Link href={`/posts/${attr.slug}`} style={{textDecoration:'none',color:'inherit'}}>
                     <div style={{height:240,overflow:'hidden'}}>
-                      <Image src={img} alt={attr.title} width={600} height={240} className="card-img" style={{objectFit:'cover'}} />
+                      <Image src={img} alt={attr.title} width={1200} height={240} style={{objectFit:'cover',width:'100%',height:'240px'}} />
+                    </div>
+                    <div style={{padding:18,flex:1,display:'flex',flexDirection:'column'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                        <div style={{background:'#2a9d8f',color:'#fff,padding:'"6px 10px"',borderRadius:999,fontWeight:700,fontSize:12,padding:'6px 10px'}}>{attr.category}</div>
+                        <div style={{color:'#666',fontSize:13}}>{date}</div>
+                      </div>
+                      <h3 style={{margin:'6px 0 12px',fontSize:20,color:'#1a1a2e'}}>{attr.title}</h3>
+                      <p style={{color:'#444',flex:1,marginBottom:12}}>{preview}...</p>
+                      <div style={{marginTop:'auto',display:'flex',justifyContent:'flex-end'}}>
+                        <span style={{background:'#2a9d8f',color:'#fff,padding:'"8px 12px"',borderRadius:8,fontWeight:700,fontSize:14,padding:'8px 12px'}}>자세히 보기</span>
+                      </div>
                     </div>
                   </Link>
-                  <div className="card-body">
-                    <div className={`badge ${categoryColor[attr.category] || 'bg-gray-100 text-gray-800'}`}>{attr.category}</div>
-                    <h3 className="card-title">{attr.title}</h3>
-                    <p className="card-excerpt">{preview}...</p>
-                    <div className="card-meta">
-                      <span className="date">{date}</span>
-                      <Link href={`/posts/${attr.slug}`} className="read-more">자세히 보기 →</Link>
-                    </div>
-                  </div>
                 </article>
               )
-            })}
-          </div>
-        )}
+            })
+          )}
+        </div>
       </section>
-    </>
+    </main>
   )
 }
