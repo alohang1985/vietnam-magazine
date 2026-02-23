@@ -1,0 +1,6 @@
+[
+  { "name": "전체 프로젝트 상태 체크", "cmd": "echo 'Checking all projects...'", "category": "project" },
+  { "name": "Railway 재배포 트리거", "cmd": "echo 'Trigger Railway deploy'", "category": "project" },
+  { "name": "Strapi 백업", "cmd": "echo 'Strapi backup'", "category": "project" },
+  { "name": "베트남 블로그 3개 생성", "cmd": "echo 'Create 3 blog posts'", "category": "content" }
+]

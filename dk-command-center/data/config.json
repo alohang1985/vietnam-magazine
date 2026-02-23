@@ -1,0 +1,8 @@
+{
+  "env": {
+    "OPENCLAW_CMD": "openclaw sessions_spawn --task",
+    "TELEGRAM_BOT_TOKEN": "",
+    "STRAPI_URL": "",
+    "STRAPI_API_TOKEN": ""
+  }
+}

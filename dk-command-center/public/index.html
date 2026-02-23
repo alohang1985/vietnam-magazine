@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DK Command Center</title>
+  <style>
+    :root{--bg:#ffffff;--teal:#2a9d8f;--navy:#1a1a2e;--muted:#666}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:var(--bg);color:var(--navy)}
+    .wrap{display:grid;grid-template-columns:360px 1fr;grid-template-rows:1fr auto;gap:18px;height:100vh;padding:18px;box-sizing:border-box}
+    .panel{background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(26,26,46,0.06);padding:18px;overflow:auto}
+    .left{display:flex;flex-direction:column;gap:12px}
+    .right{display:flex;flex-direction:column;gap:12px}
+    .hero{background:var(--navy);color:#fff;padding:18px;border-radius:12px}
+    .badge{background:var(--teal);color:#fff;padding:6px 10px;border-radius:999px;font-weight:700}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .btn{background:var(--teal);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .muted{color:var(--muted)}
+    .task-list{list-style:none;padding:0;margin:0}
+    .task-list li{padding:8px;border-bottom:1px solid #f3f3f3}
+    .footer{grid-column:1/-1}
+    textarea{width:100%;height:100px}
+    @media(max-width:900px){ .wrap{grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel left">
+      <div class="hero">
+        <h2>DK Command Center</h2>
+        <div class="muted">Mac Mini · Local Control Tower</div>
+      </div>
+
+      <div class="panel">
+        <h3>상태 모니터</h3>
+        <div id="status-monitor">로딩 중...</div>
+      </div>
+
+      <div class="panel">
+        <h3>달력</h3>
+        <div id="calendar">(달력 위젯)</div>
+      </div>
+
+      <div class="panel">
+        <h3>할일</h3>
+        <ul id="todo" class="task-list"></ul>
+        <input id="todo-input" placeholder="할일 추가" /> <button id="todo-add" class="btn">추가</button>
+      </div>
+    </div>
+
+    <div class="panel right">
+      <h3>OpenClaw 작업 지시</h3>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <select id="task-select"></select>
+        <button id="preview" class="btn">명령 미리보기</button>
+        <button id="exec" class="btn">실행</button>
+      </div>
+      <div id="cmd-preview" style="background:#fafafa;padding:10px;border-radius:8px;border:1px solid #f0f0f0;min-height:40px"></div>
+
+      <h4>실행 로그</h4>
+      <div id="logs" style="height:300px;overflow:auto;background:#fff;border-radius:8px;padding:8px;border:1px solid #eee"></div>
+
+      <h4>최근 작업</h4>
+      <div id="recent">없음</div>
+    </div>
+
+    <div class="panel footer">
+      <h3>빠른 메모</h3>
+      <textarea id="quick-note"></textarea>
+      <div style="margin-top:8px"><button id="save-note" class="btn">저장</button></div>
+    </div>
+  </div>
+
+  <script>
+    async function loadTasks(){
+      const res = await fetch('/api/tasks'); const tasks = await res.json();
+      const sel = document.getElementById('task-select'); sel.innerHTML = '';
+      tasks.forEach(t=>{ const o = document.createElement('option'); o.value = t.cmd; o.textContent = t.name + ' ('+t.category+')'; sel.appendChild(o); });
+    }
+    async function loadTodo(){ const res = await fetch('/api/todo'); const todos = await res.json(); const ul = document.getElementById('todo'); ul.innerHTML=''; todos.forEach((td,i)=>{ const li=document.createElement('li'); li.textContent = (td.done? '✅ ':'') + td.text; ul.appendChild(li); }); }
+    document.getElementById('todo-add').addEventListener('click', async ()=>{ const v=document.getElementById('todo-input').value; if(!v) return; await fetch('/api/todo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:v})}); document.getElementById('todo-input').value=''; loadTodo(); });
+
+    document.getElementById('preview').addEventListener('click', async ()=>{
+      const cmd = document.getElementById('task-select').value;
+      const name = document.getElementById('task-select').selectedOptions[0].text;
+      const res = await fetch('/api/run/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,cmd})}); const j=await res.json(); document.getElementById('cmd-preview').textContent = j.cmd || '없음';
+    });
+
+    document.getElementById('exec').addEventListener('click', async ()=>{
+      const cmd = document.getElementById('task-select').value;
+      const name = document.getElementById('task-select').selectedOptions[0].text;
+      if(!confirm('실행하시겠습니까?\n'+cmd)) return;
+      const res = await fetch('/api/run/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,cmd})}); const j=await res.json();
+      if(j.ok){ const ln = document.getElementById('logs'); const a = document.createElement('a'); a.href=j.log; a.textContent = '실행 로그: '+j.log; a.target='_blank'; ln.prepend(a); ln.prepend(document.createElement('br')); }
+    });
+
+    async function init(){ await loadTasks(); await loadTodo(); }
+    window.onload = init;
+  </script>
+</body>
+</html>
