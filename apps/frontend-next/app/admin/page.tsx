@@ -4,6 +4,29 @@ import { useState } from 'react';
 export default function AdminPostPage() {
   const [text, setText] = useState('');
   const [status, setStatus] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [password, setPassword] = useState('');
+
+  async function checkPassword(e) {
+    e.preventDefault();
+    setAuthError('');
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const json = await res.json();
+      if (res.ok && json.ok) {
+        setAuthChecked(true);
+      } else {
+        setAuthError(json.message || '접근 거부');
+      }
+    } catch (e) {
+      setAuthError(e.message);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -20,6 +43,27 @@ export default function AdminPostPage() {
     } catch (e) {
       setStatus({ ok: false, msg: e.message });
     }
+  }
+
+  if (!authChecked) {
+    return (
+      <div style={{ maxWidth: 600, margin: '40px auto', padding: 20 }}>
+        <h1>관리자 로그인</h1>
+        <form onSubmit={checkPassword}>
+          <input
+            type="password"
+            placeholder="비밀번호"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{ width: '100%', padding: 10, fontSize: 16 }}
+          />
+          <div style={{ marginTop: 12 }}>
+            <button type="submit" style={{ padding: '8px 14px' }}>확인</button>
+          </div>
+        </form>
+        {authError && <div style={{ color: 'red', marginTop: 12 }}>{authError}</div>}
+      </div>
+    );
   }
 
   return (
