@@ -1,8 +1,29 @@
 {
-  "env": {
-    "OPENCLAW_CMD": "openclaw sessions_spawn --task",
-    "TELEGRAM_BOT_TOKEN": "",
-    "STRAPI_URL": "",
-    "STRAPI_API_TOKEN": ""
+  "railway": {
+    "api_token": "",
+    "projects": [
+      ""  
+    ]
+  },
+  "strapi": {
+    "url": "",
+    "api_token": ""
+  },
+  "vietnam_magazine": {
+    "strapi_url": "" 
+  },
+  "tourpik": {
+    "url": "" 
+  },
+  "telegram": {
+    "bot_token": "",
+    "chat_id": ""
+  },
+  "exchange": {
+    "api_key": "" 
+  },
+  "weather": {
+    "api_key": "",
+    "city": "Ho Chi Minh"
   }
 }

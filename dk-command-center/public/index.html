@@ -124,7 +124,43 @@
       copyAndOpen(prompt);
     });
 
-    async function init(){ await loadTasks(); await loadTodo(); await loadNotes(); await loadCalendar(); }
+    async function showConfigStatus(){
+      const res = await fetch('/api/config');
+      const cfg = await res.json();
+      const sm = document.getElementById('status-monitor');
+      sm.innerHTML = '';
+      const services = [
+        { key: 'railway', label: 'Railway' },
+        { key: 'strapi', label: 'Strapi' },
+        { key: 'vietnam_magazine', label: 'Vietnam Magazine (Strapi)' },
+        { key: 'tourpik', label: 'Tourpik' },
+        { key: 'telegram', label: 'Telegram' },
+        { key: 'exchange', label: '환율 API' },
+        { key: 'weather', label: '날씨 API' }
+      ];
+      services.forEach(s => {
+        const div = document.createElement('div');
+        const val = cfg[s.key];
+        if (!val) {
+          div.innerHTML = `<strong>${s.label}:</strong> 설정 필요 — config.json에 API 키를 입력해주세요`;
+        } else {
+          // check required fields per service
+          let ok = true; let missing = [];
+          if (s.key === 'railway') { if (!val.api_token || !val.projects || !val.projects.length) { ok=false; missing.push('api_token/projects'); } }
+          if (s.key === 'strapi') { if (!val.url || !val.api_token) { ok=false; missing.push('url/api_token'); } }
+          if (s.key === 'vietnam_magazine') { if (!val.strapi_url) { ok=false; missing.push('strapi_url'); } }
+          if (s.key === 'tourpik') { if (!val.url) { ok=false; missing.push('url'); } }
+          if (s.key === 'telegram') { if (!val.bot_token || !val.chat_id) { ok=false; missing.push('bot_token/chat_id'); } }
+          if (s.key === 'exchange') { if (!val.api_key) { ok=false; missing.push('api_key'); } }
+          if (s.key === 'weather') { if (!val.api_key) { ok=false; missing.push('api_key'); } }
+          if (!ok) div.innerHTML = `<strong>${s.label}:</strong> 설정 필요 — ${missing.join(', ')}`;
+          else div.innerHTML = `<strong>${s.label}:</strong> 구성됨`; 
+        }
+        sm.appendChild(div);
+      });
+    }
+
+    async function init(){ await loadTasks(); await loadTodo(); await loadNotes(); await loadCalendar(); await showConfigStatus(); }
     window.onload = init;
   </script>
 </body>
