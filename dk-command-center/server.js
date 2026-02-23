@@ -70,8 +70,19 @@ app.get('/data/:file', (req,res)=>{
 
 // Simple todo/memo APIs
 app.get('/api/todo', (req,res)=> res.json(readJson('todo.json', [])));
-app.post('/api/todo', (req,res)=>{ const todos = readJson('todo.json', []); todos.push(req.body); writeJson('todo.json', todos); res.json({ok:true}); });
+app.post('/api/todo', (req,res)=>{ const todos = readJson('todo.json', []); const item = req.body; item.done = false; item.created_at = new Date().toISOString(); todos.push(item); writeJson('todo.json', todos); res.json({ok:true}); });
 app.post('/api/todo/:idx/done', (req,res)=>{ const todos = readJson('todo.json', []); const i = parseInt(req.params.idx); if (todos[i]) todos[i].done = true; writeJson('todo.json', todos); res.json({ok:true}); });
+app.delete('/api/todo/:idx', (req,res)=>{ const todos = readJson('todo.json', []); const i = parseInt(req.params.idx); if (!isNaN(i) && todos[i]) { todos.splice(i,1); writeJson('todo.json', todos); return res.json({ok:true}); } res.status(404).json({error:'not found'}); });
+
+// Notes (quick memos)
+app.get('/api/notes', (req,res)=> res.json(readJson('notes.json', [])));
+app.post('/api/notes', (req,res)=>{ const notes = readJson('notes.json', []); const note = { text: req.body.text || '', created_at: new Date().toISOString() }; notes.unshift(note); writeJson('notes.json', notes); res.json({ok:true}); });
+app.delete('/api/notes/:idx', (req,res)=>{ const notes = readJson('notes.json', []); const i = parseInt(req.params.idx); if (!isNaN(i) && notes[i]) { notes.splice(i,1); writeJson('notes.json', notes); return res.json({ok:true}); } res.status(404).json({error:'not found'}); });
+
+// Calendar
+app.get('/api/calendar', (req,res)=> res.json(readJson('calendar.json', [])));
+app.post('/api/calendar', (req,res)=>{ const cal = readJson('calendar.json', []); const item = { date: req.body.date, text: req.body.text, created_at: new Date().toISOString() }; cal.push(item); writeJson('calendar.json', cal); res.json({ok:true}); });
+app.delete('/api/calendar/:idx', (req,res)=>{ const cal = readJson('calendar.json', []); const i = parseInt(req.params.idx); if (!isNaN(i) && cal[i]) { cal.splice(i,1); writeJson('calendar.json', cal); return res.json({ok:true}); } res.status(404).json({error:'not found'}); });
 
 // Config
 app.get('/api/config', (req,res)=> res.json(readJson('config.json', { env: {} })));

@@ -77,9 +77,17 @@
       const sel = document.getElementById('task-select'); sel.innerHTML = '';
       tasks.forEach(t=>{ const o = document.createElement('option'); o.value = t.cmd; o.textContent = t.name + ' ('+t.category+')'; sel.appendChild(o); });
     }
-    async function loadTodo(){ const res = await fetch('/api/todo'); const todos = await res.json(); const ul = document.getElementById('todo'); ul.innerHTML=''; todos.forEach((td,i)=>{ const li=document.createElement('li'); li.textContent = (td.done? '✅ ':'') + td.text; ul.appendChild(li); }); }
+
+    async function loadTodo(){ const res = await fetch('/api/todo'); const todos = await res.json(); const ul = document.getElementById('todo'); ul.innerHTML=''; todos.forEach((td,i)=>{ const li=document.createElement('li'); li.textContent = (td.done? '✅ ':'') + td.text; const btnDone=document.createElement('button'); btnDone.textContent='완료'; btnDone.style.marginLeft='8px'; btnDone.onclick=async ()=>{ await fetch('/api/todo/'+i+'/done',{method:'POST'}); loadTodo(); }; const btnDel=document.createElement('button'); btnDel.textContent='삭제'; btnDel.style.marginLeft='8px'; btnDel.onclick=async ()=>{ if(!confirm('삭제하시겠습니까?')) return; await fetch('/api/todo/'+i,{method:'DELETE'}); loadTodo(); }; li.appendChild(btnDone); li.appendChild(btnDel); ul.appendChild(li); }); }
     document.getElementById('todo-add').addEventListener('click', async ()=>{ const v=document.getElementById('todo-input').value; if(!v) return; await fetch('/api/todo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:v})}); document.getElementById('todo-input').value=''; loadTodo(); });
 
+    // notes
+    async function loadNotes(){ const res = await fetch('/api/notes'); const notes = await res.json(); const area=document.getElementById('quick-note'); area.value = notes && notes[0] ? notes[0].text : ''; const list=document.getElementById('notes-list'); if(list){ list.innerHTML=''; notes.forEach((n,i)=>{ const li=document.createElement('div'); li.textContent = n.text + ' ('+ new Date(n.created_at).toLocaleString() +')'; const del=document.createElement('button'); del.textContent='삭제'; del.style.marginLeft='8px'; del.onclick=async ()=>{ if(!confirm('삭제?')) return; await fetch('/api/notes/'+i,{method:'DELETE'}); loadNotes(); }; li.appendChild(del); list.appendChild(li); }); }}
+    document.getElementById('save-note').addEventListener('click', async ()=>{ const v=document.getElementById('quick-note').value; await fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:v})}); loadNotes(); });
+
+    // calendar
+    async function loadCalendar(){ const res = await fetch('/api/calendar'); const cal = await res.json(); const el=document.getElementById('calendar'); el.innerHTML=''; cal.forEach((c,i)=>{ const d=document.createElement('div'); d.textContent = c.date + ' - ' + c.text; const del=document.createElement('button'); del.textContent='삭제'; del.style.marginLeft='8px'; del.onclick=async ()=>{ if(!confirm('삭제?')) return; await fetch('/api/calendar/'+i,{method:'DELETE'}); loadCalendar(); }; d.appendChild(del); el.appendChild(d); }); }
+    // run preview/execute
     document.getElementById('preview').addEventListener('click', async ()=>{
       const cmd = document.getElementById('task-select').value;
       const name = document.getElementById('task-select').selectedOptions[0].text;
@@ -94,7 +102,7 @@
       if(j.ok){ const ln = document.getElementById('logs'); const a = document.createElement('a'); a.href=j.log; a.textContent = '실행 로그: '+j.log; a.target='_blank'; ln.prepend(a); ln.prepend(document.createElement('br')); }
     });
 
-    async function init(){ await loadTasks(); await loadTodo(); }
+    async function init(){ await loadTasks(); await loadTodo(); await loadNotes(); await loadCalendar(); }
     window.onload = init;
   </script>
 </body>
