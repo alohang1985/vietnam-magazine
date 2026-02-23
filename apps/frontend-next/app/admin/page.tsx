@@ -30,6 +30,10 @@ export default function AdminPostPage() {
 
   const [posts, setPosts] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const [mainImage, setMainImage] = useState('');
+  const [showUnsplash, setShowUnsplash] = useState(false);
+  const [unsplashQuery, setUnsplashQuery] = useState('');
+  const [unsplashResults, setUnsplashResults] = useState([]);
 
   async function loadPosts() {
     try {
@@ -76,6 +80,8 @@ export default function AdminPostPage() {
     setEditingId(post.id || (post.attributes && post.attributes.id));
     const content = post.attributes ? post.attributes.article_markdown : (post.article_markdown || '');
     setText(content);
+    const img = post.attributes ? (post.attributes.hero_image?.url || '') : (post.hero_image || '');
+    setMainImage(img);
   }
 
   async function handleDelete(post) {
@@ -142,6 +148,57 @@ export default function AdminPostPage() {
         <div style={{ flex: 2 }}>
           <h2>{editingId ? '게시물 수정' : '새 포스팅 생성'}</h2>
           <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 8 }}>
+              <label style={{display:'block',fontSize:13,marginBottom:6}}>메인 이미지 URL</label>
+              <input value={mainImage} onChange={(e)=>setMainImage(e.target.value)} placeholder="메인 이미지 URL" style={{width:'100%',padding:8}} />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <button type="button" onClick={()=>setShowUnsplash(s=>!s)} style={{marginRight:8}}>이미지 삽입</button>
+              <label style={{marginLeft:8}}><input type="file" id="uploadFile" style={{display:'none'}} onChange={async (e)=>{
+                const f = e.target.files && e.target.files[0];
+                if (!f) return;
+                const fd = new FormData(); fd.append('files', f);
+                try {
+                  const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+                  const j = await res.json();
+                  if (res.ok && j.url) {
+                    // insert markdown at cursor
+                    const md = `![Photo](${j.url})`;
+                    setText(t=> t + '\n\n' + md);
+                    setStatus({ok:true,msg:'업로드 및 삽입 완료'});
+                  } else setStatus({ok:false,msg: j.error || JSON.stringify(j)});
+                } catch (err) { setStatus({ok:false,msg: err.message}); }
+              }} /><button type="button" onClick={()=>document.getElementById('uploadFile')?.click()}>내 사진 업로드</button></label>
+            </div>
+            {showUnsplash && (
+              <div style={{border:'1px solid #eee',padding:8,marginBottom:8}}>
+                <div style={{display:'flex',gap:8,marginBottom:8}}>
+                  <input value={unsplashQuery} onChange={(e)=>setUnsplashQuery(e.target.value)} placeholder="검색어 입력" style={{flex:1,padding:8}} />
+                  <button type="button" onClick={async ()=>{
+                    try{
+                      const q = encodeURIComponent(unsplashQuery);
+                      const res = await fetch(`/api/admin/unsplash?q=${q}`);
+                      const j = await res.json();
+                      if (res.ok) setUnsplashResults(j.results || j);
+                      else setStatus({ok:false,msg: JSON.stringify(j)});
+                    }catch(e){ setStatus({ok:false,msg:e.message}); }
+                  }}>검색</button>
+                </div>
+                <div style={{display:'flex',gap:8,overflowX:'auto'}}>
+                  {unsplashResults.map((r:any, idx:number)=>(
+                    <div key={idx} style={{cursor:'pointer'}} onClick={()=>{
+                      const md = `![Photo by ${r.authorName} on Unsplash](${r.url}) *[Photo by ${r.authorName} on Unsplash](${r.creditLink})*`;
+                      setText(t=> t + '\n\n' + md);
+                      setShowUnsplash(false);
+                    }}>
+                      <img src={r.thumb} style={{height:80,display:'block',borderRadius:6}} />
+                      <div style={{fontSize:11,textAlign:'center'}}>{r.authorName}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <textarea
               placeholder="여기에 긴 내용을 붙여넣으세요 (사용자 제공 글)"
               value={text}
@@ -150,7 +207,7 @@ export default function AdminPostPage() {
             />
             <div style={{ marginTop: 12 }}>
               <button type="submit" style={{ padding: '10px 18px', fontSize: 16 }}>{editingId ? '저장' : '포스팅 생성'}</button>
-              {editingId && <button type="button" onClick={() => { setEditingId(null); setText(''); }} style={{ marginLeft: 8 }}>취소</button>}
+              {editingId && <button type="button" onClick={() => { setEditingId(null); setText(''); setMainImage(''); }} style={{ marginLeft: 8 }}>취소</button>}
             </div>
           </form>
           <div style={{ marginTop: 16 }}>
