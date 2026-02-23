@@ -8,10 +8,16 @@ export async function POST(req: NextRequest) {
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
-    const STRAPI_URL = process.env.STRAPI_URL;
+    const STRAPI_URL = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_CMS_URL;
 
-    if (!GEMINI_API_KEY || !STRAPI_API_TOKEN || !STRAPI_URL) {
-      return new Response(JSON.stringify({ error: 'missing server config' }), { status: 500 });
+    // Detailed missing-env logging
+    const missing = [];
+    if (!GEMINI_API_KEY) missing.push('GEMINI_API_KEY');
+    if (!STRAPI_API_TOKEN) missing.push('STRAPI_API_TOKEN');
+    if (!STRAPI_URL) missing.push('STRAPI_URL or NEXT_PUBLIC_CMS_URL');
+    if (missing.length) {
+      console.error('Missing required env vars:', missing.join(', '));
+      return new Response(JSON.stringify({ error: 'missing server config', missing }), { status: 500 });
     }
 
     // Call Gemini to generate post JSON
