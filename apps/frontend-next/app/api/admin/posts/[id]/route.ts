@@ -8,7 +8,7 @@ export async function PUT(req: NextRequest, { params }) {
     const STRAPI_URL = process.env.STRAPI_URL;
     if (!STRAPI_API_TOKEN || !STRAPI_URL) return new Response(JSON.stringify({ error: 'missing server config' }), { status: 500 });
 
-    const data = { data: {} };
+    const data: { data: Record<string, unknown> } = { data: {} };
     if (body.title) data.data.title = body.title;
     if (body.article_markdown) data.data.article_markdown = body.article_markdown;
     if (body.category) data.data.category = body.category;
