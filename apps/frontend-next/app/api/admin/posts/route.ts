@@ -6,8 +6,8 @@ export async function GET() {
     const STRAPI_URL = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_CMS_URL;
     if (!STRAPI_API_TOKEN || !STRAPI_URL) return new Response(JSON.stringify({ error: 'missing server config' }), { status: 500 });
 
-    // Sort by publishedAt descending
-    const res = await fetch(`${STRAPI_URL}/api/posts?pagination[limit]=50&sort=publishedAt:desc`, {
+    // Use explicit pagination (pageSize=100, page=1) and sort by publishedAt descending
+    const res = await fetch(`${STRAPI_URL}/api/posts?pagination[pageSize]=100&pagination[page]=1&sort=publishedAt:desc`, {
       headers: { Authorization: `Bearer ${STRAPI_API_TOKEN}` }
     });
     const json = await res.json();
