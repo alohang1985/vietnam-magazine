@@ -158,29 +158,24 @@ function validatePostData(data) {
 
 
 const path = require('path');
-// Resolve services relative to current dir first (deployed /app), fall back to parent dir structure
 const fs = require('fs');
-const tryRequire = (folder, file) => {
+function resolveService(file){
   const candidates = [
-    path.join(__dirname, folder, file),
-    path.join(__dirname, '..', folder, file),
-    path.join(process.cwd(), folder, file),
-    path.join(process.cwd(), 'telegram-bot', '..', folder, file)
+    path.join(__dirname, 'services', file), // ✅ /app/services/xxx (Railway flatten 케이스)
+    path.join(__dirname, '..', 'services', file), // ✅ /app/telegram-bot/../services/xxx (repo 케이스)
+    path.join(process.cwd(), 'services', file), // ✅ cwd/services (예외 케이스)
   ];
   for (const p of candidates) {
-    try {
-      if (fs.existsSync(p + '.js') || fs.existsSync(p)) {
-        return require(p);
-      }
-    } catch (e) {}
+    const js = p.endsWith('.js') ? p : (p + '.js');
+    if (fs.existsSync(js)) return require(js);
+    if (fs.existsSync(p)) return require(p);
   }
-  // last effort: try require relative (may throw)
-  return require(path.join(__dirname, '..', folder, file));
-};
-const { search } = tryRequire('services','braveSearch');
-const { fetchText } = tryRequire('services','pageFetcher');
-const { generate } = tryRequire('services','postGenerator');
-const { createPost } = tryRequire('services','strapiClient');
+  throw new Error('Service module not found: ' + file + ' | tried: ' + candidates.join(' , '));
+}
+const { search } = resolveService('braveSearch');
+const { fetchText } = resolveService('pageFetcher');
+const { generate } = resolveService('postGenerator');
+const { createPost } = resolveService('strapiClient');
 
 async function processMessage(chatId, text) {
   const trimmed = text.trim();
