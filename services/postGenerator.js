@@ -11,7 +11,7 @@ async function generate(query, sources, region, topic) {
   const snippets = (sources||[]).map((s,i)=>`[${i+1}] ${s.snippet||''}`).join(' ');
   const prompt = '당신은 베트남 여행 전문 20대 여성 블로거입니다. ' + '주제: ' + query + ' ' + '참고자료: ' + snippets + ' ' + '위 주제로 3000자 이상 여행 블로그 포스팅을 마크다운으로 작성하세요. ' + '이모지 포함, 귀엽고 전문적으로. ' + 'JSON이나 코드블록 없이 본문 텍스트만 출력하세요.';
   const apiKey = process.env.GEMINI_API_KEY;
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey;
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
   const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]}) });
   const data = await res.json();
   console.log('Gemini full response:', JSON.stringify(data).slice(0,2000));
