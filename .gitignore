@@ -7,3 +7,7 @@ venv
 
 # ignore monitoring reports
 bithumb_mvp/monitoring/reports/
+
+# local env files
+.env
+.dk_command_center.env

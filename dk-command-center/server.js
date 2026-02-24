@@ -5,6 +5,12 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { spawn } = require('child_process');
 
+// Read Brave API key from environment only
+const BRAVE_API_KEY = process.env.BRAVE_API_KEY || null;
+if (!BRAVE_API_KEY) {
+  console.warn('[WARN] BRAVE_API_KEY is not set. Brave Search integration disabled. Set BRAVE_API_KEY in ~/.zshrc');
+}
+
 const app = express();
 const PORT = 3333;
 const ROOT = path.resolve(__dirname);

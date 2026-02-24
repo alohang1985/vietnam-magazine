@@ -5,9 +5,15 @@ const STRAPI_URL = process.env.STRAPI_URL;
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 
+// Brave API key from environment only
+const BRAVE_API_KEY = process.env.BRAVE_API_KEY || null;
+if (!BRAVE_API_KEY) {
+  console.warn('[WARN] BRAVE_API_KEY is not set. Brave Search disabled for telegram-bot.');
+}
+
 const ALLOWED_CATEGORIES = ['phu-quoc','nha-trang','da-nang','ho-chi-minh','hanoi','ha-long','dalat','hoi-an','sapa','mui-ne'];
 
-// 필수 env 검증
+// 필수 env 검증 (BRAVE is optional)
 const requiredEnv = ['TELEGRAM_BOT_TOKEN','GEMINI_API_KEY','STRAPI_URL','STRAPI_API_TOKEN'];
 for (const key of requiredEnv) {
   if (!process.env[key]) {

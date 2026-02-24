@@ -1,29 +1,24 @@
 {
   "railway": {
-    "api_token": "",
     "projects": [
-      ""  
+      ""
     ]
   },
   "strapi": {
-    "url": "",
-    "api_token": ""
+    "url": ""
   },
   "vietnam_magazine": {
-    "strapi_url": "" 
+    "strapi_url": ""
   },
   "tourpik": {
-    "url": "" 
+    "url": ""
   },
   "telegram": {
-    "bot_token": "",
     "chat_id": ""
   },
   "exchange": {
-    "api_key": "" 
   },
   "weather": {
-    "api_key": "",
     "city": "Ho Chi Minh"
   }
 }
