@@ -89,10 +89,25 @@ function extractJson(raw) {
 
 async function generateFromPage(url, pageText) {
   return retry(async () => {
-    const prompt = `You must respond with ONLY a valid JSON object. Analyze the following web page and reconstruct it as a Korean travel magazine article. Do not include the raw HTML. Topic: "${url}"
+    const prompt = `You must respond with ONLY a valid JSON object. Analyze the following web page and reconstruct it as a Korean travel magazine article following the STYLE GUIDELINES below. Do not include the raw HTML. Topic: "${url}"
 Page content:
 ${pageText}
-Rules: - Korean language only for title and content - English only for slug - Include real place info when present - Markdown format with ## headings - Minimum 500 characters - Friendly tone - Return ONLY JSON: {"title":"한국어 제목","slug":"english-slug","category":"city","content":"markdown"}`;
+
+[STYLE GUIDELINES]
+- 작성자: 베트남을 사랑하는 20대 여성 여행 블로거
+- 톤: 전문적이면서도 귀엽고 여성스러운 문체
+- 이모지 적절히 사용 (과하지 않게)
+- 현지를 직접 다녀온 것처럼 생생하게
+- 독자에게 말 걸듯이 친근하게
+- 실용적인 정보(가격, 위치, 추천 메뉴) 포함
+
+[구성 - 최소 3000자]
+- 도입부: 설레는 여행 시작 느낌으로
+- 맛집 소개 (3~5곳): 각 맛집마다 분위기, 추천메뉴, 가격대, 팁
+- 여행 꿀팁 섹션
+- 마무리: 독자를 응원하는 따뜻한 마무리
+
+Rules: - Korean language only for title and content - English only for slug - Include real place info when present - Markdown format with ## headings - Minimum 3000 characters - Friendly tone - Return ONLY JSON: {"title":"한국어 제목","slug":"english-slug","category":"city","content":"markdown"}`;
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 8192, temperature: 0.5 } }
@@ -104,7 +119,23 @@ Rules: - Korean language only for title and content - English only for slug - In
 }
 async function generatePost(topic) {
   return retry(async () => {
-    const prompt = `You must respond with ONLY a valid JSON object. No markdown, no code blocks, no backticks. Just raw JSON. User provided content about a Vietnam travel topic: """ ${topic} """ Your job: 1. Analyze the content above 2. Rewrite it as a Korean travel magazine article 3. Keep all real information (prices, menus, locations, tips) from the original 4. Add a Google Maps link for the main place: [지도에서 보기](https://maps.google.com/?q=PLACE_NAME+CITY_NAME+Vietnam) 5. Use ## headings in markdown 6. Friendly Korean tone 7. End with 💡 여행 꿀팁 section Return ONLY this JSON (no backticks, no extra text): {"title":"한국어 제목","slug":"english-slug-only","category":"city","content":"markdown content here"} category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne`;
+    const prompt = `You must respond with ONLY a valid JSON object. No markdown, no code blocks, no backticks. Just raw JSON. User provided content about a Vietnam travel topic: """ ${topic} """ Your job: Rewrite the content as a Korean travel magazine article following the STYLE GUIDELINES below. Keep all real information (prices, menus, locations, tips) from the original when present. Add a Google Maps link for the main place. Use ## headings in markdown. Tone: friendly Korean. End with 💡 여행 꿀팁 section. Category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne.
+
+[STYLE GUIDELINES]
+- 작성자: 베트남을 사랑하는 20대 여성 여행 블로거
+- 톤: 전문적이면서도 귀엽고 여성스러운 문체
+- 이모지 적절히 사용 (과하지 않게)
+- 현지를 직접 다녀온 것처럼 생생하게
+- 독자에게 말 걸듯이 친근하게
+- 실용적인 정보(가격, 위치, 추천 메뉴) 포함
+
+[구성 - 최소 3000자]
+- 도입부: 설레는 여행 시작 느낌으로
+- 맛집 소개 (3~5곳): 각 맛집마다 분위기, 추천메뉴, 가격대, 팁
+- 여행 꿀팁 섹션
+- 마무리: 독자를 응원하는 따뜻한 마무리
+
+Return ONLY this JSON (no backticks, no extra text): {"title":"한국어 제목","slug":"english-slug-only","category":"city","content":"markdown content here"}`;
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
