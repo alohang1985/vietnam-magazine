@@ -141,6 +141,18 @@ Return JSON only (no surrounding text): {"title":"Korean title","slug":"english-
             generated = obj;
           } catch (e) {
             console.error('Gemini JSON parse error:', e.message);
+            // Fallback: extract fields via regex when JSON.parse fails (very long content)
+            const rawJson = match[0];
+            const titleMatch = rawJson.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+            const slugMatch = rawJson.match(/"slug"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+            const categoryMatch = rawJson.match(/"category"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+            const contentMatch = rawJson.match(/"content"\s*:\s*"([\s\S]*)"\s*\}?\s*`*\s*$/);
+            generated = {
+              title: titleMatch ? titleMatch[1].replace(/\\"/g,'"') : undefined,
+              slug: slugMatch ? slugMatch[1].replace(/\\"/g,'"') : undefined,
+              category: categoryMatch ? categoryMatch[1].replace(/\\"/g,'"') : undefined,
+              content: contentMatch ? contentMatch[1].replace(/\\"/g,'"') : undefined
+            };
           }
         }
       }
