@@ -74,7 +74,9 @@ function toMarkdown(sources, query, summary_5lines) {
   return md;
 }
 
-function generate(query, rawResults, region = '', topic = '') {
+const axios = require('axios');
+
+async function generate(query, rawResults, region = '', topic = '') {
   const sources = rawResults.map(r => ({
     title: r.title || '',
     url: r.url,
@@ -82,20 +84,58 @@ function generate(query, rawResults, region = '', topic = '') {
     siteName: r.siteName || '',
     text: r.text || ''
   }));
-  // ensure region/topic mapping
+
   const regionMapped = mapTerm(region);
   const topicMapped = mapTerm(topic);
-  const title = makeTitle(region || query, topic || '');
-  const summary_5lines = makeSummary(sources);
-  const article_markdown = toMarkdown(sources, query, summary_5lines);
-  const sourcesMeta = sources.map(s => ({title: s.title, url: s.url, siteName: s.siteName}));
-  // slug: region-topic-timestamp
   const timestamp = Math.floor(Date.now()/1000);
-  let slug = `${regionMapped}-${topicMapped}-${timestamp}`.replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
-  if (!slug || /^-+$/.test(slug)) {
-    slug = slugify(title) || (`${query.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${timestamp}`.slice(0,80));
+  const defaultSlug = `${regionMapped}-${topicMapped}-${timestamp}`.replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
+
+  // Build prompt for Gemini using snippets + extracted text
+  const snippets = sources.map((s,i)=>`[${i+1}] TITLE: ${s.title}\nSNIPPET: ${s.snippet}\nURL: ${s.url}`).join('\n\n');
+  const fullTexts = sources.map((s,i)=>`[${i+1}] URL: ${s.url}\nTEXT: ${s.text ? s.text.slice(0,5000) : ''}`).join('\n\n');
+
+  const geminiKey = process.env.GEMINI_API_KEY;
+  let generated = null;
+  if (geminiKey) {
+    const prompt = `You are a Korean travel content writer. Using the information below (search snippets and page texts), write a single Korean travel magazine article in MARKDOWN (no HTML). Follow the STYLE GUIDELINES and STRUCTURE. The article must be at least 3000 characters.
+
+STYLE GUIDELINES:\n- Author: 20s female travel blogger who loves Vietnam\n- Tone: professional yet cute and feminine\n- Use emojis sparingly\n- Write as if you visited in person, be vivid and friendly\n- Include practical info (price ranges, locations, recommended dishes) when available\n
+STRUCTURE (REQUIRED):\n- Intro: travel-excited opening\n- Main: 3-5 places (for each: atmosphere, recommended dish, price range, practical tip)\n- Tips section\n- Closing: warm send-off\n
+INSTRUCTIONS:\n- Use ## headings for sections\n- Do not include raw HTML\n- Title should be Korean, slug must be English-only (use region/topic mapped values or fallback to default), category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne\n
+DATA:\nQuery: ${query}\nRegion (Korean): ${region}\nTopic (Korean): ${topic}\nSnippets:\n${snippets}\n
+Page texts (truncated):\n${fullTexts}\n
+Return JSON only (no surrounding text): {"title":"Korean title","slug":"english-slug","category":"one-of-allowed","content":"markdown content"}`;
+
+    try {
+      const res = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+        { contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 8192, temperature: 0.6 } }
+      );
+      const raw = res.data.candidates && res.data.candidates[0] && res.data.candidates[0].content && res.data.candidates[0].content.parts[0].text;
+      if (raw) {
+        // try extract JSON
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) {
+          try {
+            const obj = JSON.parse(match[0]);
+            generated = obj;
+          } catch (e) {
+            console.error('Gemini JSON parse error:', e.message);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Gemini call error:', e.message);
+    }
   }
-  const category = regionMapped || (query.match(/(phu-?quoc|nha-?trang|da-?nang|ho-?chi-?minh|hanoi|ha-?long|da-?lat|dalat|hoi-?an|sapa|mui-?ne)/i) || [])[0] || '';
+
+  const title = (generated && generated.title) ? generated.title : makeTitle(region || query, topic || '');
+  const summary_5lines = makeSummary(sources);
+  const article_markdown = (generated && generated.content) ? generated.content : toMarkdown(sources, query, summary_5lines);
+  const sourcesMeta = sources.map(s => ({title: s.title, url: s.url, siteName: s.siteName}));
+  const slug = (generated && generated.slug) ? generated.slug : (defaultSlug || slugify(title));
+  const category = (generated && generated.category) ? generated.category : (regionMapped || (query.match(/(phu-?quoc|nha-?trang|da-?nang|ho-?chi-?minh|hanoi|ha-?long|da-?lat|dalat|hoi-?an|sapa|mui-?ne)/i) || [])[0] || '');
+
   return { title, summary_5lines, article_markdown, sources: sourcesMeta, slug, category };
 }
 

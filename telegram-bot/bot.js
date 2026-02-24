@@ -196,7 +196,7 @@ async function processMessage(chatId, text) {
 
       // 3) 한국어 매거진 스타일 포스팅 생성
       await sendMessage(chatId, '✍️ 포스팅 초안을 생성합니다...');
-      const postData = generate(query, withText, region, topic);
+      const postData = await generate(query, withText, region, topic);
 
       // 4) Strapi에 저장 (title, content, summary_5lines, sources)
       await sendMessage(chatId, '💾 Strapi에 저장합니다...');
