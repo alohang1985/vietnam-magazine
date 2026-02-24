@@ -38,6 +38,22 @@ const REGION_TOPIC_MAP = {
   '마트': 'supermarket'
 };
 
+// Region -> Strapi category mapping (only regions)
+const REGION_MAP = {
+  '푸꾸옥': 'phu-quoc',
+  '푸쿠옥': 'phu-quoc',
+  '나트랑': 'nha-trang',
+  '나짱': 'nha-trang',
+  '다낭': 'da-nang',
+  '호치민': 'ho-chi-minh',
+  '하노이': 'hanoi',
+  '하롱': 'ha-long',
+  '달랏': 'dalat',
+  '호이안': 'hoi-an',
+  '사파': 'sapa',
+  '무이네': 'mui-ne'
+};
+
 function mapTerm(kw) {
   if (!kw) return '';
   const key = kw.trim();
