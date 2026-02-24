@@ -15,7 +15,27 @@ const REGION_TOPIC_MAP = {
   '카페': 'cafe',
   '여행': 'travel',
   '관광': 'tourism',
-  '숙소': 'accommodation'
+  '숙소': 'accommodation',
+  '투어': 'tour',
+  '호핑': 'hopping-tour',
+  '액티비티': 'activity',
+  '스파': 'spa',
+  '마사지': 'massage',
+  '호텔': 'hotel',
+  '리조트': 'resort',
+  '야시장': 'night-market',
+  '시장': 'market',
+  '해변': 'beach',
+  '비치': 'beach',
+  '섬': 'island',
+  '관광지': 'attraction',
+  '명소': 'attraction',
+  '루프탑': 'rooftop',
+  '바': 'bar',
+  '펍': 'pub',
+  '클럽': 'club',
+  '쇼핑': 'shopping',
+  '마트': 'supermarket'
 };
 
 function mapTerm(kw) {

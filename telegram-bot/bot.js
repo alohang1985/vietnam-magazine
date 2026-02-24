@@ -169,7 +169,7 @@ async function processMessage(chatId, text) {
 
     // Trigger phrase: generic region + topic + (post request verbs)
     // Capture region (group 1) and topic (맛집|카페|여행|관광|숙소) as group 2
-    const triggerMatch = trimmed.match(/(.+?)\s*(맛집|카페|여행|관광|숙소).*(포스팅\s*해줘|포스팅해줘|작성해줘|작성\s*해줘|포스트\s*작성)/i);
+    const triggerMatch = trimmed.match(/(.+?)\s*(맛집|카페|여행|관광|숙소|투어|호핑|액티비티|스파|마사지|호텔|리조트|야시장|시장|해변|비치|섬|관광지|명소|루프탑|바|펍|클럽|쇼핑|마트).*(포스팅\s*해줘|포스팅해줘|작성해줘|작성\s*해줘|포스트\s*작성)/i);
     if (triggerMatch) {
       const region = (triggerMatch[1] || '').trim();
       const topic = (triggerMatch[2] || '').trim();
