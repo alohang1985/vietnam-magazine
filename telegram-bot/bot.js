@@ -212,7 +212,7 @@ async function processMessage(chatId, text) {
       try {
         created = await createPost({
           title: postData.title,
-          article_markdown: postData.article_markdown,
+          article_markdown: postData.article_markdown || postData.content || postData.article || '',
           summary_5lines: postData.summary_5lines,
           sources: postData.sources,
           category: postData.category || 'ho-chi-minh',
