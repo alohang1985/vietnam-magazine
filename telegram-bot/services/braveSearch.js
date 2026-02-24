@@ -5,7 +5,8 @@ const { execSync } = require('child_process');
 // for the bot runtime we implement a simple fetch-based wrapper that calls Brave's
 // REST API. Ensure BRAVE_API_KEY is set in env.
 
-const fetch = require('node-fetch');
+// Node 18+ (Node 22) includes global fetch; no node-fetch required
+const fetch = globalThis.fetch;
 
 async function search(query, count = 3, ui_lang = 'ko-KR') {
   const key = process.env.BRAVE_API_KEY;
