@@ -14,20 +14,42 @@ async function generate(query, sources, region, topic) {
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   // Log raw preview for debugging (first 2KB)
   console.log('Gemini raw preview:', (raw||'').slice(0,2048));
-  // Try to extract inner content if model returned JSON-wrapped string
+  // Clean raw: remove any JSON fragment appended inside the raw text (e.g. ...markdown...{"title":...})
+  let cleaned = raw || '';
+  if (cleaned) {
+    const jsonPos = cleaned.search(/\{\s*"title"\s*:/);
+    if (jsonPos === -1) {
+      const otherPos = cleaned.search(/\n\{\s*"/);
+      if (otherPos !== -1) {
+        cleaned = cleaned.slice(0, otherPos);
+        console.log('Removed trailing JSON fragment starting at newline.');
+      }
+    } else {
+      cleaned = cleaned.slice(0, jsonPos);
+      console.log('Removed trailing JSON fragment starting at index:', jsonPos);
+    }
+  }
+
+  // Try to extract inner content if model returned a pure JSON string instead
   let extracted = '';
-  if (raw) {
+  if (cleaned) {
     try {
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(cleaned);
       extracted = parsed.content || parsed.article_markdown || parsed.text || '';
       console.log('Gemini parsed JSON keys found. Using extracted content length:', extracted ? String(extracted).length : 0);
     } catch (e) {
-      // not JSON; use raw
-      extracted = raw;
-      console.log('Gemini raw is not JSON; using raw text length:', String(raw).length);
+      // cleaned is likely plain markdown
+      extracted = cleaned;
+      console.log('Gemini cleaned is not JSON; using cleaned text length:', String(cleaned).length);
     }
   }
-  const article_markdown = (extracted && String(extracted).trim()) ? String(extracted).trim() : String(raw || '').trim();
+
+  // fallback: if very short, use snippets as minimal content
+  let article_markdown = (extracted && String(extracted).trim()) ? String(extracted).trim() : '';
+  if (!article_markdown || article_markdown.length < 200) {
+    console.warn('Article markdown too short; using snippets fallback. length=', article_markdown.length);
+    article_markdown = snippets || '내용이 충분하지 않아 간단 요약만 제공합니다.';
+  }
   console.log('Final article_markdown length:', article_markdown.length);
   return { title, slug, category, article_markdown };
 }

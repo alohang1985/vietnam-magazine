@@ -13,18 +13,40 @@ async function generate(query, sources, region, topic) {
   const data = await res.json();
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   console.log('Gemini raw preview:', (raw||'').slice(0,2048));
+  // Clean raw: remove any JSON fragment appended inside the raw text
+  let cleaned = raw || '';
+  if (cleaned) {
+    const jsonPos = cleaned.search(/\{\s*"title"\s*:/);
+    if (jsonPos === -1) {
+      const otherPos = cleaned.search(/
+\{\s*"/);
+      if (otherPos !== -1) {
+        cleaned = cleaned.slice(0, otherPos);
+        console.log('Removed trailing JSON fragment starting at newline.');
+      }
+    } else {
+      cleaned = cleaned.slice(0, jsonPos);
+      console.log('Removed trailing JSON fragment starting at index:', jsonPos);
+    }
+  }
+
   let extracted = '';
-  if (raw) {
+  if (cleaned) {
     try {
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(cleaned);
       extracted = parsed.content || parsed.article_markdown || parsed.text || '';
       console.log('Gemini parsed JSON keys found. Using extracted content length:', extracted ? String(extracted).length : 0);
     } catch (e) {
-      extracted = raw;
-      console.log('Gemini raw is not JSON; using raw text length:', String(raw).length);
+      extracted = cleaned;
+      console.log('Gemini cleaned is not JSON; using cleaned text length:', String(cleaned).length);
     }
   }
-  const article_markdown = (extracted && String(extracted).trim()) ? String(extracted).trim() : String(raw || '').trim();
+
+  let article_markdown = (extracted && String(extracted).trim()) ? String(extracted).trim() : '';
+  if (!article_markdown || article_markdown.length < 200) {
+    console.warn('Article markdown too short; using snippets fallback. length=', article_markdown.length);
+    article_markdown = snippets || '내용이 충분하지 않아 간단 요약만 제공합니다.';
+  }
   console.log('Final article_markdown length:', article_markdown.length);
   return { title, slug, category, article_markdown };
 }
