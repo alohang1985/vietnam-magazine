@@ -141,12 +141,57 @@ async function createPost(data, image) {
   });
 }
 
+const { search } = require('../services/braveSearch');
+const { fetchText } = require('../services/pageFetcher');
+const { generate } = require('../services/postGenerator');
+const { createPost } = require('../services/strapiClient');
+
 async function processMessage(chatId, text) {
   const trimmed = text.trim();
   try {
     await sendMessage(chatId, `⏳ "${trimmed}" 포스팅 생성 중입니다...`);
+
+    // Trigger phrase: exactly "호치민 맛집 포스팅해줘" (allow small variants)
+    if (/호치민\s*맛집\s*포스팅해줘/i.test(trimmed)) {
+      // 1) Brave 실시간 검색 상위 3개
+      await sendMessage(chatId, '🔎 Brave에서 상위 3개 결과를 가져옵니다...');
+      const results = await search('호치민 맛집', 3, 'ko-KR');
+
+      // 2) 각 페이지 텍스트 본문 가져오기 (동시)
+      await sendMessage(chatId, '📄 각 결과의 본문을 수집 중입니다 (이미지 제외)...');
+      const withText = await Promise.all(results.map(async r => {
+        try {
+          const text = await fetchText(r.url);
+          return Object.assign({}, r, { text });
+        } catch (e) {
+          console.error('fetchText error for', r.url, e.message);
+          return Object.assign({}, r, { text: r.snippet || '' });
+        }
+      }));
+
+      // 3) 한국어 매거진 스타일 포스팅 생성
+      await sendMessage(chatId, '✍️ 포스팅 초안을 생성합니다...');
+      const postData = generate('호치민 맛집', withText);
+
+      // 4) Strapi에 저장 (title, content, summary_5lines, sources)
+      await sendMessage(chatId, '💾 Strapi에 저장합니다...');
+      const created = await createPost({
+        title: postData.title,
+        content: postData.content,
+        summary_5lines: postData.summary_5lines,
+        sources: postData.sources
+      });
+
+      // 5) 알림 (Strapi 응답에서 slug/ID 추출)
+      let slug = null;
+      if (created && created.data && created.data.attributes && created.data.attributes.slug) slug = created.data.attributes.slug;
+      const link = slug ? `${process.env.SITE_BASE_URL || process.env.STRAPI_URL}/posts/${slug}` : (created && created.data && created.data.id ? `${process.env.STRAPI_URL.replace(/\/$/,'')}/admin/content-manager/collectionType/api::post.post/${created.data.id}` : process.env.STRAPI_URL);
+      await sendMessage(chatId, `✅ 포스팅 완료! 링크: ${link}`);
+      return;
+    }
+
+    // Fallback: previous behavior (generate from plain topic via Gemini)
     if (/^https?:\/\//i.test(trimmed)) {
-      // user sent a URL - fetch page and ask Gemini to analyze it
       let pageText;
       try {
         pageText = await fetchPageText(trimmed);
@@ -155,11 +200,8 @@ async function processMessage(chatId, text) {
         return;
       }
       const data = await generateFromPage(trimmed, pageText);
-      // for URL-origin posts, do not attach Unsplash image; create post and return summary text to user
       const post = await createPost(data, null);
-      await sendMessage(chatId, `✅ URL 분석 및 포스팅 완료! <b>${data.title}</b>
-요약:
-${data.content.slice(0,300)}...`);
+      await sendMessage(chatId, `✅ URL 분석 및 포스팅 완료! <b>${data.title}</b>\n요약:\n${data.content.slice(0,300)}...`);
     } else {
       const [data, image] = await Promise.all([generatePost(trimmed), getUnsplashImage(trimmed)]);
       const post = await createPost(data, image);
