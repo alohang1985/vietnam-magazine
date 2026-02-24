@@ -12,16 +12,20 @@ async function generate(query, sources, region, topic) {
   const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]}) });
   const data = await res.json();
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  console.log('Gemini raw preview:', (raw||'').slice(0,2048));
   let extracted = '';
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
       extracted = parsed.content || parsed.article_markdown || parsed.text || '';
+      console.log('Gemini parsed JSON keys found. Using extracted content length:', extracted ? String(extracted).length : 0);
     } catch (e) {
       extracted = raw;
+      console.log('Gemini raw is not JSON; using raw text length:', String(raw).length);
     }
   }
   const article_markdown = (extracted && String(extracted).trim()) ? String(extracted).trim() : String(raw || '').trim();
+  console.log('Final article_markdown length:', article_markdown.length);
   return { title, slug, category, article_markdown };
 }
 

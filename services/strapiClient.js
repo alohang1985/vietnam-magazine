@@ -20,16 +20,31 @@ async function createPost(payload) {
       dataPayload.hero_image = { source: 'brave', url: String(dataPayload.hero_image), photographer: '', license_url: '' };
     }
     const body = { data: dataPayload };
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${STRAPI_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
+    // add timeout using AbortController
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${STRAPI_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    // log request/response for debugging
+    console.log('Strapi POST URL:', url);
+    console.log('Strapi POST body preview:', JSON.stringify(body).slice(0,1000));
+
     if (!res.ok) {
       const t = await res.text();
+      console.error('Strapi create post failed:', res.status, t.slice(0,1000));
       throw new Error(`Strapi create post error ${res.status}: ${t}`);
     }
     const json = await res.json();
