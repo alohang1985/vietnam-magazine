@@ -38,7 +38,9 @@ async function generate(query, sources, region, topic) {
   }
 
   console.log('Final article_markdown length:', article_markdown.length);
-  return { title, slug, category, article_markdown };
+  // Ensure slug always has a timestamp suffix to avoid duplicates
+  const finalSlug = String(slug).replace(/-\d+$/, '') + '-' + Date.now();
+  return { title, slug: finalSlug, category, article_markdown };
 }
 
 module.exports = { generate };
