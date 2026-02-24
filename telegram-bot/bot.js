@@ -208,15 +208,22 @@ async function processMessage(chatId, text) {
         photographer: firstWithImage.siteName || '',
         license_url: firstWithImage.imageOriginal || ''
       } : null;
-      const created = await createPost({
-        title: postData.title,
-        article_markdown: postData.article_markdown,
-        summary_5lines: postData.summary_5lines,
-        sources: postData.sources,
-        category: postData.category || 'ho-chi-minh',
-        slug: postData.slug || undefined,
-        hero_image: heroImage
-      });
+      let created;
+      try {
+        created = await createPost({
+          title: postData.title,
+          article_markdown: postData.article_markdown,
+          summary_5lines: postData.summary_5lines,
+          sources: postData.sources,
+          category: postData.category || 'ho-chi-minh',
+          slug: postData.slug || undefined,
+          hero_image: heroImage
+        });
+      } catch (err) {
+        console.error('Strapi createPost error:', err.message);
+        await sendMessage(chatId, '❌ Strapi 저장 실패: ' + (err.message || '').substring(0, 100));
+        return;
+      }
 
       // 5) 알림 (Strapi 응답에서 slug/ID 추출)
       let slug = null;
@@ -241,7 +248,14 @@ async function processMessage(chatId, text) {
       await sendMessage(chatId, `✅ URL 분석 및 포스팅 완료! <b>${data.title}</b>\n요약:\n${data.content.slice(0,300)}...`);
     } else {
       const [data, image] = await Promise.all([generatePost(trimmed), getUnsplashImage(trimmed)]);
-      const post = await createPost(data, image);
+      let post;
+      try {
+        post = await createPost(data, image);
+      } catch (err) {
+        console.error('Strapi createPost error (fallback):', err.message);
+        await sendMessage(chatId, '❌ Strapi 저장 실패: ' + (err.message || '').substring(0, 100));
+        return;
+      }
       const slug = post.data && post.data.attributes ? post.data.attributes.slug : '';
       await sendMessage(chatId, `✅ 포스팅 완료! <b>${data.title}</b> 🔗 https://vietnam-magazine.vercel.app/posts/${slug}`);
     }

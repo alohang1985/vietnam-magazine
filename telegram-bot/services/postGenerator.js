@@ -146,7 +146,9 @@ async function generate(query, rawResults, region = '', topic = '') {
   const summary_5lines = makeSummary(sources);
   const article_markdown = (generated && generated.content) ? generated.content : toMarkdown(sources, query, summary_5lines);
   const sourcesMeta = sources.map(s => ({title: s.title, url: s.url, siteName: s.siteName}));
-  const slug = (generated && generated.slug) ? generated.slug : (defaultSlug || slugify(title));
+  let slug = (generated && generated.slug) ? generated.slug : (defaultSlug || slugify(title));
+  // append timestamp to ensure uniqueness
+  slug = `${slug}-${Date.now()}`;
   const category = (generated && generated.category) ? generated.category : (regionMapped || (query.match(/(phu-?quoc|nha-?trang|da-?nang|ho-?chi-?minh|hanoi|ha-?long|da-?lat|dalat|hoi-?an|sapa|mui-?ne)/i) || [])[0] || '');
 
   return { title, summary_5lines, article_markdown, sources: sourcesMeta, slug, category };
