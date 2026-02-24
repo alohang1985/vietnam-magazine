@@ -157,10 +157,11 @@ function validatePostData(data) {
 }
 
 
-const { search } = require('../services/braveSearch');
-const { fetchText } = require('../services/pageFetcher');
-const { generate } = require('../services/postGenerator');
-const { createPost } = require('../services/strapiClient');
+const path = require('path');
+const { search } = require(path.join(__dirname, '../services/braveSearch'));
+const { fetchText } = require(path.join(__dirname, '../services/pageFetcher'));
+const { generate } = require(path.join(__dirname, '../services/postGenerator'));
+const { createPost } = require(path.join(__dirname, '../services/strapiClient'));
 
 async function processMessage(chatId, text) {
   const trimmed = text.trim();
