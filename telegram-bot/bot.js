@@ -201,7 +201,13 @@ async function processMessage(chatId, text) {
       // 4) Strapi에 저장 (title, content, summary_5lines, sources)
       await sendMessage(chatId, '💾 Strapi에 저장합니다...');
       // select hero image: first result with imageUrl
-      const heroImage = (withText.map(r=>r.imageUrl).find(u=>u) || null);
+      const firstWithImage = withText.find(r => r.imageUrl);
+      const heroImage = firstWithImage ? {
+        source: 'brave',
+        url: firstWithImage.imageUrl,
+        photographer: firstWithImage.siteName || '',
+        license_url: firstWithImage.imageOriginal || ''
+      } : null;
       const created = await createPost({
         title: postData.title,
         article_markdown: postData.article_markdown,

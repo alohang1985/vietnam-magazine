@@ -12,7 +12,13 @@ async function createPost(payload) {
     if (!STRAPI_URL || !STRAPI_TOKEN) throw new Error('STRAPI_URL or STRAPI_API_TOKEN not set');
     const url = `${STRAPI_URL.replace(/\/$/,'')}/api/posts`;
     // Ensure status published
-    const body = { data: Object.assign({}, payload, { status: 'published' }) };
+    const dataPayload = Object.assign({}, payload, { status: 'published' });
+    // Ensure hero_image component is sent as object when provided
+    if (dataPayload.hero_image && typeof dataPayload.hero_image !== 'object') {
+      // if a string was passed accidentally, wrap it
+      dataPayload.hero_image = { source: 'brave', url: String(dataPayload.hero_image), photographer: '', license_url: '' };
+    }
+    const body = { data: dataPayload };
     const res = await fetch(url, {
       method: 'POST',
       headers: {
