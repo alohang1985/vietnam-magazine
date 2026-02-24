@@ -143,7 +143,18 @@ async function generate(query, rawResults, region = '', topic = '') {
       );
       const raw = res.data.candidates && res.data.candidates[0] && res.data.candidates[0].content && res.data.candidates[0].content.parts[0].text;
       if (raw) {
-        generatedContent = raw.trim();
+        // Try to extract a content field if the model returned JSON-like text
+        let extracted = null;
+        try {
+          const parsed = JSON.parse(raw);
+          // common locations for generated text
+          if (parsed.content) extracted = parsed.content;
+          else if (parsed.article_markdown) extracted = parsed.article_markdown;
+          else if (parsed.text) extracted = parsed.text;
+        } catch (e) {
+          // not JSON — keep raw
+        }
+        generatedContent = (extracted && String(extracted).trim()) ? String(extracted).trim() : raw.trim();
       }
     } catch (e) {
       console.error('Gemini call error:', e.message);
