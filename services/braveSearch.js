@@ -11,7 +11,7 @@ const fetch = globalThis.fetch;
 async function search(query, count = 3, ui_lang = 'ko-KR') {
   const key = process.env.BRAVE_API_KEY;
   if (!key) throw new Error('BRAVE_API_KEY not set');
-  const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&source=web&count=${count}&ui_lang=${ui_lang}`;
+  const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&source=web&count=${count}&ui_lang=${ui_lang}&freshness=py`;
   const headers = {
     'Accept': 'application/json',
     'X-Subscription-Token': key
