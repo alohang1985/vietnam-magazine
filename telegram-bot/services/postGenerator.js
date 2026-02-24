@@ -11,7 +11,17 @@ async function generate(query, sources, region, topic) {
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey;
   const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]}) });
   const data = await res.json();
-  const article_markdown = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  let extracted = '';
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      extracted = parsed.content || parsed.article_markdown || parsed.text || '';
+    } catch (e) {
+      extracted = raw;
+    }
+  }
+  const article_markdown = (extracted && String(extracted).trim()) ? String(extracted).trim() : String(raw || '').trim();
   return { title, slug, category, article_markdown };
 }
 
