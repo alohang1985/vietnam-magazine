@@ -15,6 +15,8 @@ async function search(query, count = 3, ui_lang = 'ko-KR') {
     'Accept': 'application/json',
     'X-Subscription-Token': key
   };
+  console.log('Brave 요청 URL:', url);
+  console.log('Brave 요청 헤더:', headers);
   const res = await fetch(url, { headers });
   if (!res.ok) {
     const text = await res.text();
