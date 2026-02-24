@@ -12,8 +12,12 @@ async function createPost(payload) {
   try {
     if (!STRAPI_URL || !STRAPI_TOKEN) throw new Error('STRAPI_URL or STRAPI_API_TOKEN not set');
     const url = `${STRAPI_URL.replace(/\/$/,'')}/api/posts`;
-    // Ensure status published
+    // Build data payload explicitly to ensure article_markdown is sent
     const dataPayload = Object.assign({}, payload, { status: 'published' });
+    // Guarantee article_markdown field exists (try common fallbacks)
+    if (!dataPayload.article_markdown) {
+      dataPayload.article_markdown = payload.article_markdown || payload.content || payload.article || '';
+    }
     // Ensure hero_image component is sent as object when provided
     if (dataPayload.hero_image && typeof dataPayload.hero_image !== 'object') {
       // if a string was passed accidentally, wrap it
