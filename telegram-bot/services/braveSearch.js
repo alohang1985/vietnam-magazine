@@ -24,15 +24,37 @@ async function search(query, count = 3, ui_lang = 'ko-KR') {
     throw new Error(`Brave Search error ${res.status}: ${text}`);
   }
   const json = await res.json();
+  // Try to fetch image search results for higher-quality images
+  let imageMap = {};
+  try {
+    const imgUrl = `https://api.search.brave.com/res/v1/images/search?q=${encodeURIComponent(query)}&count=3&ui_lang=${ui_lang}`;
+    const imgRes = await fetch(imgUrl, { headers });
+    if (imgRes.ok) {
+      const imgJson = await imgRes.json();
+      (imgJson.results || []).forEach(img => {
+        const key = img.sourceUrl || img.hostPageUrl || img.query || query;
+        const hi = img.properties && img.properties.url ? img.properties.url : (img.thumbnail && img.thumbnail.src) || null;
+        if (hi) imageMap[img.hostPageUrl || img.sourceUrl || img.query || ''] = hi;
+      });
+    }
+  } catch (e) {
+    console.warn('Brave image search failed:', e.message);
+  }
+
   // normalize to simple array of {title,url,description,siteName}
-  const results = (json.results || []).slice(0, count).map(r => ({
-    title: r.title || '',
-    url: r.url,
-    snippet: r.description || '',
-    siteName: r.siteName || '',
-    imageUrl: (r.thumbnail && (r.thumbnail.src)) || (r.image && (r.image.src || r.image.url)) || null,
-    imageOriginal: (r.thumbnail && r.thumbnail.original) || (r.image && r.image.original) || null
-  }));
+  const results = (json.results || []).slice(0, count).map(r => {
+    const host = r.url || '';
+    const imageUrl = imageMap[host] || (r.thumbnail && (r.thumbnail.src)) || (r.image && (r.image.src || r.image.url)) || null;
+    const imageOriginal = host || (r.thumbnail && r.thumbnail.original) || (r.image && r.image.original) || null;
+    return {
+      title: r.title || '',
+      url: r.url,
+      snippet: r.description || '',
+      siteName: r.siteName || '',
+      imageUrl,
+      imageOriginal
+    };
+  });
   return results;
 }
 
