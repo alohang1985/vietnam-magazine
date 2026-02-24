@@ -135,7 +135,7 @@ async function generate(query, rawResults, region = '', topic = '') {
   // Request only the Markdown content from Gemini to avoid parsing issues
   let generatedContent = null;
   if (geminiKey) {
-    const prompt = `다음 정보를 바탕으로 베트남 여행 매거진 스타일의 마크다운 본문만 작성해줘. 스타일 가이드는 기존과 동일하게 유지하되, 응답은 순수 마크다운 본문(3000자 이상)만 출력해줘. JSON이나 구분자 없이 텍스트만 반환.` + "\n\n" + `DATA:\n${snippets}\n\n${fullTexts}`;
+    const prompt = `절대로 JSON 형식으로 응답하지 마세요. 코드블록(```)을 사용하지 마세요. 마크다운 본문만 순수 텍스트로 출력하세요.\n\n다음 정보를 바탕으로 베트남 여행 매거진 스타일의 마크다운 본문만 작성해줘. 스타일 가이드는 기존과 동일하게 유지하되, 응답은 순수 마크다운 본문(3000자 이상)만 출력해줘. JSON이나 구분자 없이 텍스트만 반환.` + "\n\n" + `DATA:\n${snippets}\n\n${fullTexts}`;
     try {
       const res = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
