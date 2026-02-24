@@ -95,8 +95,9 @@ async function generateContent(category, topic) {
       const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(topic)}&source=web&count=3&ui_lang=ko-KR&freshness=py`;
       const res = await axios.get(url, { headers: { 'X-Subscription-Token': braveKey, Accept: 'application/json' } });
       const results = res.data.results || [];
-      snippets = results.map((r, i) => `[${i+1}] ${r.description || r.snippet || r.title || ''}`).join('\n');
-      console.log('Brave snippets collected:', snippets.slice(0,500));
+      entries = results.slice(0,3).map((r,i)=>{const title=r.title||'';const url=r.url||r.hostPageUrl||'';const snippet=r.description||r.snippet||'';return {title,url,snippet};});
+      snippets = entries.map((e,i)=>`${i+1}. 제목: ${e.title} / URL: ${e.url} / 내용: ${e.snippet}`).join('\n');
+      console.log('Brave snippets collected (title/url/snippet):', snippets.slice(0,800));
     } else {
       console.warn('BRAVE_API_KEY not set; skipping Brave search');
     }
@@ -105,7 +106,8 @@ async function generateContent(category, topic) {
   }
 
   // 2) Build Gemini prompt with snippets
-  const prompt = `당신은 베트남 여행 전문 20대 여성 블로거입니다. 반드시 '${topic}'에 대한 포스팅만 작성하세요. 절대 다른 주제로 벗어나지 마세요. [참고 자료] ${snippets} [작성 조건] - 주제: ${topic} - 스타일: 20대 여성 여행 블로거, 귀엽고 전문적, 이모지 포함 - 분량: 3000자 이상 - 형식: 순수 마크다운 본문만 출력 - JSON이나 코드블록 없이 텍스트만 반환`;
+  const prompt = `당신은 베트남 여행 전문 20대 여성 블로거입니다. 반드시 '${topic}'에 대한 포스팅만 작성하세요. 절대 다른 주제로 벗어나지 마세요. [참고 자료] ${snippets} 
+[주의] 반드시 실제로 존재하는 구체적인 식당/장소 이름을 사용해야 해. [식당 이름 1] 같은 플레이스홀더 절대 사용 금지. 아래 참고 자료에서 언급된 실제 장소명을 그대로 사용해. 만약 참고 자료에 구체적인 장소명이 없으면 베트남에 실제로 존재하는 유명한 장소명을 사용해. [작성 조건] - 주제: ${topic} - 스타일: 20대 여성 여행 블로거, 귀엽고 전문적, 이모지 포함 - 분량: 3000자 이상 - 형식: 순수 마크다운 본문만 출력 - JSON이나 코드블록 없이 텍스트만 반환`;
 
   // 3) Call Gemini (use gemini-2.5-flash-lite)
   const response = await axios.post(
