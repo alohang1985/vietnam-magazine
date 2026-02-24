@@ -136,12 +136,20 @@ async function processMessage(chatId, text) {
   try {
     await sendMessage(chatId, `⏳ "${trimmed}" 포스팅 생성 중입니다...`);
 
-    // Trigger phrase: flexible match for city + 맛집 + (포스팅해줘|포스팅 해줘|작성해줘)
-    if (/호치민\s*맛집.*(포스팅\s*해줘|포스팅해줘|작성해줘|작성\s*해줘|포스트\s*작성)/i.test(trimmed)) {
-      console.log('트리거 감지됨! 입력:', trimmed);
+    // Trigger phrase: generic region + topic + (post request verbs)
+    // Capture region (group 1) and topic (맛집|카페|여행|관광|숙소) as group 2
+    const triggerMatch = trimmed.match(/(.+?)\s*(맛집|카페|여행|관광|숙소).*(포스팅\s*해줘|포스팅해줘|작성해줘|작성\s*해줘|포스트\s*작성)/i);
+    if (triggerMatch) {
+      const region = (triggerMatch[1] || '').trim();
+      const topic = (triggerMatch[2] || '').trim();
+      console.log('트리거 감지됨! 입력:', trimmed, '지역:', region, '주제:', topic);
+
+      // Build Brave query from region + topic (e.g., "푸꾸옥 맛집")
+      const query = `${region} ${topic}`.trim();
+
       // 1) Brave 실시간 검색 상위 3개
-      await sendMessage(chatId, '🔎 Brave에서 상위 3개 결과를 가져옵니다...');
-      const results = await search('호치민 맛집', 3, 'ko-KR');
+      await sendMessage(chatId, `🔎 "${query}"로 Brave에서 상위 3개 결과를 가져옵니다...`);
+      const results = await search(query, 3, 'ko-KR');
 
       // 2) 각 페이지 텍스트 본문 가져오기 (동시)
       await sendMessage(chatId, '📄 각 결과의 본문을 수집 중입니다 (이미지 제외)...');
@@ -157,7 +165,7 @@ async function processMessage(chatId, text) {
 
       // 3) 한국어 매거진 스타일 포스팅 생성
       await sendMessage(chatId, '✍️ 포스팅 초안을 생성합니다...');
-      const postData = generate('호치민 맛집', withText);
+      const postData = generate(query, withText);
 
       // 4) Strapi에 저장 (title, content, summary_5lines, sources)
       await sendMessage(chatId, '💾 Strapi에 저장합니다...');
