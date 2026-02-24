@@ -1,4 +1,5 @@
-const fetch = require('node-fetch');
+// Use built-in global fetch (Node 18+ / 22)
+const fetch = globalThis.fetch;
 
 const STRAPI_URL = process.env.STRAPI_URL;
 const STRAPI_TOKEN = process.env.STRAPI_API_TOKEN;
