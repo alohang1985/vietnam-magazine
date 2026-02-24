@@ -171,9 +171,11 @@ async function processMessage(chatId, text) {
       await sendMessage(chatId, '💾 Strapi에 저장합니다...');
       const created = await createPost({
         title: postData.title,
-        content: postData.content,
+        article_markdown: postData.article_markdown,
         summary_5lines: postData.summary_5lines,
-        sources: postData.sources
+        sources: postData.sources,
+        category: postData.category || 'ho-chi-minh',
+        slug: postData.slug || undefined
       });
 
       // 5) 알림 (Strapi 응답에서 slug/ID 추출)

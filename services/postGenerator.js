@@ -32,6 +32,10 @@ function makeContent(sources) {
   return content;
 }
 
+function slugify(text){
+  return text.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
+}
+
 function generate(query, rawResults) {
   const sources = rawResults.map(r => ({
     title: r.title || '',
@@ -42,9 +46,11 @@ function generate(query, rawResults) {
   }));
   const title = makeTitle(query, sources);
   const summary_5lines = makeSummary(sources);
-  const content = makeContent(sources);
+  const article_markdown = makeContent(sources);
   const sourcesMeta = sources.map(s => ({title: s.title, url: s.url, siteName: s.siteName}));
-  return { title, summary_5lines, content, sources: sourcesMeta };
+  const slug = slugify(title);
+  const category = (query.match(/(phu-?quoc|nha-?trang|da-?nang|ho-?chi-?minh|hanoi|ha-?long|dalat|hoi-?an|sapa|mui-?ne)/i) || [])[0] || '';
+  return { title, summary_5lines, article_markdown, sources: sourcesMeta, slug, category };
 }
 
 module.exports = { generate };
