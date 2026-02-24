@@ -7,22 +7,31 @@ if (!STRAPI_URL || !STRAPI_TOKEN) {
 }
 
 async function createPost(payload) {
-  if (!STRAPI_URL || !STRAPI_TOKEN) throw new Error('STRAPI_URL or STRAPI_API_TOKEN not set');
-  const url = `${STRAPI_URL.replace(/\/$/,'')}/api/posts`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${STRAPI_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ data: payload })
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`Strapi create post error ${res.status}: ${t}`);
+  console.log('Strapi 저장 시도 중...', payload.title || payload);
+  try {
+    if (!STRAPI_URL || !STRAPI_TOKEN) throw new Error('STRAPI_URL or STRAPI_API_TOKEN not set');
+    const url = `${STRAPI_URL.replace(/\/$/,'')}/api/posts`;
+    // Ensure status published
+    const body = { data: Object.assign({}, payload, { status: 'published' }) };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${STRAPI_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Strapi create post error ${res.status}: ${t}`);
+    }
+    const json = await res.json();
+    console.log('Strapi 저장 완료:', JSON.stringify(json).slice(0,300));
+    return json;
+  } catch (err) {
+    console.error('Strapi 저장 실패:', err.message);
+    throw err;
   }
-  const json = await res.json();
-  return json;
 }
 
 module.exports = { createPost };
