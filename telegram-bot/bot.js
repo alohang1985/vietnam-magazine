@@ -165,7 +165,7 @@ async function processMessage(chatId, text) {
 
       // 3) 한국어 매거진 스타일 포스팅 생성
       await sendMessage(chatId, '✍️ 포스팅 초안을 생성합니다...');
-      const postData = generate(query, withText);
+      const postData = generate(query, withText, region, topic);
 
       // 4) Strapi에 저장 (title, content, summary_5lines, sources)
       await sendMessage(chatId, '💾 Strapi에 저장합니다...');
@@ -181,7 +181,8 @@ async function processMessage(chatId, text) {
       // 5) 알림 (Strapi 응답에서 slug/ID 추출)
       let slug = null;
       if (created && created.data && created.data.attributes && created.data.attributes.slug) slug = created.data.attributes.slug;
-      const link = slug ? `${process.env.SITE_BASE_URL || process.env.STRAPI_URL}/posts/${slug}` : (created && created.data && created.data.id ? `${process.env.STRAPI_URL.replace(/\/$/,'')}/admin/content-manager/collectionType/api::post.post/${created.data.id}` : process.env.STRAPI_URL);
+      const frontend = process.env.FRONTEND_URL || process.env.SITE_BASE_URL || process.env.STRAPI_URL;
+      const link = slug ? `${frontend.replace(/\/$/,'')}/posts/${slug}` : (created && created.data && created.data.id ? `${process.env.STRAPI_URL.replace(/\/$/,'')}/admin/content-manager/collectionType/api::post.post/${created.data.id}` : process.env.STRAPI_URL);
       await sendMessage(chatId, `✅ 포스팅 완료! 링크: ${link}`);
       return;
     }

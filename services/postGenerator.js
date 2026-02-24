@@ -55,7 +55,7 @@ function toMarkdown(sources, query) {
   return md;
 }
 
-function generate(query, rawResults) {
+function generate(query, rawResults, region = '', topic = '') {
   const sources = rawResults.map(r => ({
     title: r.title || '',
     url: r.url,
@@ -67,11 +67,16 @@ function generate(query, rawResults) {
   const summary_5lines = makeSummary(sources);
   const article_markdown = toMarkdown(sources, query);
   const sourcesMeta = sources.map(s => ({title: s.title, url: s.url, siteName: s.siteName}));
-  let slug = slugify(title);
+  // slug: prefer region-topic-timestamp, fallback to title-based slug
+  const timestamp = Math.floor(Date.now()/1000);
+  const safeRegion = (region || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const safeTopic = (topic || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  let slug = '';
+  if (safeRegion || safeTopic) {
+    slug = `${safeRegion}-${safeTopic}-${timestamp}`.replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
+  }
   if (!slug) {
-    // fallback: region-topic-timestamp
-    const safeQuery = (query || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-    slug = `${safeQuery}-${Math.floor(Date.now()/1000)}`.slice(0,80);
+    slug = slugify(title) || (`${query.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${timestamp}`.slice(0,80));
   }
   const category = (query.match(/(phu-?quoc|nha-?trang|da-?nang|ho-?chi-?minh|hanoi|ha-?long|dalat|hoi-?an|sapa|mui-?ne)/i) || [])[0] || '';
   return { title, summary_5lines, article_markdown, sources: sourcesMeta, slug, category };
