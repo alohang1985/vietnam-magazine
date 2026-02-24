@@ -155,7 +155,8 @@ async function generate(query, rawResults, region = '', topic = '') {
   const regionEn = regionMapped || 'ho-chi-minh';
   const topicEn = topicMapped || 'travel';
   const slug = `${regionEn}-${topicEn}-${Date.now()}`;
-  const category = regionEn;
+  const regionKey = (region || '').trim();
+  const category = REGION_MAP[regionKey] || 'other';
 
   const summary_5lines = makeSummary(sources);
   const article_markdown = generatedContent || toMarkdown(sources, query, summary_5lines);
