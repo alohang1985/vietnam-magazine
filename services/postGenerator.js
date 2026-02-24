@@ -115,17 +115,11 @@ async function generate(query, rawResults, region = '', topic = '') {
   const fullTexts = sources.map((s,i)=>`[${i+1}] URL: ${s.url}\nTEXT: ${s.text ? s.text.slice(0,5000) : ''}`).join('\n\n');
 
   const geminiKey = process.env.GEMINI_API_KEY;
-  let generated = null;
+
+  // Request only the Markdown content from Gemini to avoid parsing issues
+  let generatedContent = null;
   if (geminiKey) {
-    const prompt = `You are a Korean travel content writer. Using the information below (search snippets and page texts), write a single Korean travel magazine article in MARKDOWN (no HTML). Follow the STYLE GUIDELINES and STRUCTURE. The article must be at least 3000 characters.
-
-STYLE GUIDELINES:\n- Author: 20s female travel blogger who loves Vietnam\n- Tone: professional yet cute and feminine\n- Use emojis sparingly\n- Write as if you visited in person, be vivid and friendly\n- Include practical info (price ranges, locations, recommended dishes) when available\n
-STRUCTURE (REQUIRED):\n- Intro: travel-excited opening\n- Main: 3-5 places (for each: atmosphere, recommended dish, price range, practical tip)\n- Tips section\n- Closing: warm send-off\n
-INSTRUCTIONS:\n- Use ## headings for sections\n- Do not include raw HTML\n- Title should be Korean, slug must be English-only (use region/topic mapped values or fallback to default), category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne\n
-DATA:\nQuery: ${query}\nRegion (Korean): ${region}\nTopic (Korean): ${topic}\nSnippets:\n${snippets}\n
-Page texts (truncated):\n${fullTexts}\n
-Return JSON only (no surrounding text): {"title":"Korean title","slug":"english-slug","category":"one-of-allowed","content":"markdown content"}`;
-
+    const prompt = `다음 정보를 바탕으로 베트남 여행 매거진 스타일의 마크다운 본문만 작성해줘. 스타일 가이드는 기존과 동일하게 유지하되, 응답은 순수 마크다운 본문(3000자 이상)만 출력해줘. JSON이나 구분자 없이 텍스트만 반환.` + "\n\n" + `DATA:\n${snippets}\n\n${fullTexts}`;
     try {
       const res = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
@@ -133,42 +127,23 @@ Return JSON only (no surrounding text): {"title":"Korean title","slug":"english-
       );
       const raw = res.data.candidates && res.data.candidates[0] && res.data.candidates[0].content && res.data.candidates[0].content.parts[0].text;
       if (raw) {
-        // try extract JSON
-        const match = raw.match(/\{[\s\S]*\}/);
-        if (match) {
-          try {
-            const obj = JSON.parse(match[0]);
-            generated = obj;
-          } catch (e) {
-            console.error('Gemini JSON parse error:', e.message);
-            // Fallback: extract fields via regex when JSON.parse fails (very long content)
-            const rawJson = match[0];
-            const titleMatch = rawJson.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-            const slugMatch = rawJson.match(/"slug"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-            const categoryMatch = rawJson.match(/"category"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-            const contentMatch = rawJson.match(/"content"\s*:\s*"([\s\S]*)"\s*\}?\s*`*\s*$/);
-            generated = {
-              title: titleMatch ? titleMatch[1].replace(/\\"/g,'"') : undefined,
-              slug: slugMatch ? slugMatch[1].replace(/\\"/g,'"') : undefined,
-              category: categoryMatch ? categoryMatch[1].replace(/\\"/g,'"') : undefined,
-              content: contentMatch ? contentMatch[1].replace(/\\"/g,'"') : undefined
-            };
-          }
-        }
+        generatedContent = raw.trim();
       }
     } catch (e) {
       console.error('Gemini call error:', e.message);
     }
   }
 
-  const title = (generated && generated.title) ? generated.title : makeTitle(region || query, topic || '');
+  // Build title/slug/category locally to avoid parsing issues
+  const title = makeTitle(region || query, topic || '');
+  const regionEn = regionMapped || 'ho-chi-minh';
+  const topicEn = topicMapped || 'travel';
+  const slug = `${regionEn}-${topicEn}-${Date.now()}`;
+  const category = regionEn;
+
   const summary_5lines = makeSummary(sources);
-  const article_markdown = (generated && generated.content) ? generated.content : toMarkdown(sources, query, summary_5lines);
+  const article_markdown = generatedContent || toMarkdown(sources, query, summary_5lines);
   const sourcesMeta = sources.map(s => ({title: s.title, url: s.url, siteName: s.siteName}));
-  let slug = (generated && generated.slug) ? generated.slug : (defaultSlug || slugify(title));
-  // append timestamp to ensure uniqueness
-  slug = `${slug}-${Date.now()}`;
-  const category = (generated && generated.category) ? generated.category : (regionMapped || (query.match(/(phu-?quoc|nha-?trang|da-?nang|ho-?chi-?minh|hanoi|ha-?long|da-?lat|dalat|hoi-?an|sapa|mui-?ne)/i) || [])[0] || '');
 
   return { title, summary_5lines, article_markdown, sources: sourcesMeta, slug, category };
 }

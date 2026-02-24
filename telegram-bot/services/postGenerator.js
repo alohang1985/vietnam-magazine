@@ -115,10 +115,11 @@ async function generate(query, rawResults, region = '', topic = '') {
   const fullTexts = sources.map((s,i)=>`[${i+1}] URL: ${s.url}\nTEXT: ${s.text ? s.text.slice(0,5000) : ''}`).join('\n\n');
 
   const geminiKey = process.env.GEMINI_API_KEY;
-  let generated = null;
-  if (geminiKey) {
-    const prompt = `You are a Korean travel content writer. Using the information below (search snippets and page texts), write a single Korean travel magazine article in MARKDOWN (no HTML). Follow the STYLE GUIDELINES and STRUCTURE. The article must be at least 3000 characters.\n\nSTYLE GUIDELINES:\n- Author: 20s female travel blogger who loves Vietnam\n- Tone: professional yet cute and feminine\n- Use emojis sparingly\n- Write as if you visited in person, be vivid and friendly\n- Include practical info (price ranges, locations, recommended dishes) when available\n\nSTRUCTURE (REQUIRED):\n- Intro: travel-excited opening\n- Main: 3-5 places (for each: atmosphere, recommended dish, price range, practical tip)\n- Tips section\n- Closing: warm send-off\n\nINSTRUCTIONS:\n- Use ## headings for sections\n- Do not include raw HTML\n- Title should be Korean, slug must be English-only (use region/topic mapped values or fallback to default), category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne\n\nDATA:\nQuery: ${query}\nRegion (Korean): ${region}\nTopic (Korean): ${topic}\nSnippets:\n${snippets}\n\nPage texts (truncated):\n${fullTexts}\n\nIMPORTANT: DO NOT RETURN JSON. Instead return ONLY the following delimiter-formatted plain text exactly as shown (no extra commentary):\n===TITLE=== <title here> ===SLUG=== <slug-here> ===CATEGORY=== <category-here> ===CONTENT=== <markdown content here, at least 3000 characters> ===END===`;
 
+  // Request only the Markdown content from Gemini to avoid parsing issues
+  let generatedContent = null;
+  if (geminiKey) {
+    const prompt = `다음 정보를 바탕으로 베트남 여행 매거진 스타일의 마크다운 본문만 작성해줘. 스타일 가이드는 기존과 동일하게 유지하되, 응답은 순수 마크다운 본문(3000자 이상)만 출력해줘. JSON이나 구분자 없이 텍스트만 반환.` + "\n\n" + `DATA:\n${snippets}\n\n${fullTexts}`;
     try {
       const res = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
@@ -126,35 +127,23 @@ async function generate(query, rawResults, region = '', topic = '') {
       );
       const raw = res.data.candidates && res.data.candidates[0] && res.data.candidates[0].content && res.data.candidates[0].content.parts[0].text;
       if (raw) {
-        // parse delimiter format
-        const titleMatch = raw.match(/===TITLE=== (.*?) ===SLUG===/s);
-        const slugMatch = raw.match(/===SLUG=== (.*?) ===CATEGORY===/s);
-        const categoryMatch = raw.match(/===CATEGORY=== (.*?) ===CONTENT===/s);
-        const contentMatch = raw.match(/===CONTENT=== ([\s\S]*?) ===END===/);
-        if (titleMatch && slugMatch && categoryMatch && contentMatch) {
-          generated = {
-            title: titleMatch[1].trim(),
-            slug: slugMatch[1].trim(),
-            category: categoryMatch[1].trim(),
-            content: contentMatch[1].trim()
-          };
-        } else {
-          console.error('Gemini delimiter parse failed, raw preview:', (raw||'').slice(0,300));
-        }
+        generatedContent = raw.trim();
       }
     } catch (e) {
       console.error('Gemini call error:', e.message);
     }
   }
 
-  const title = (generated && generated.title) ? generated.title : makeTitle(region || query, topic || '');
+  // Build title/slug/category locally to avoid parsing issues
+  const title = makeTitle(region || query, topic || '');
+  const regionEn = regionMapped || 'ho-chi-minh';
+  const topicEn = topicMapped || 'travel';
+  const slug = `${regionEn}-${topicEn}-${Date.now()}`;
+  const category = regionEn;
+
   const summary_5lines = makeSummary(sources);
-  const article_markdown = (generated && generated.content) ? generated.content : toMarkdown(sources, query, summary_5lines);
+  const article_markdown = generatedContent || toMarkdown(sources, query, summary_5lines);
   const sourcesMeta = sources.map(s => ({title: s.title, url: s.url, siteName: s.siteName}));
-  let slug = (generated && generated.slug) ? generated.slug : (defaultSlug || slugify(title));
-  // append timestamp to ensure uniqueness
-  slug = `${slug}-${Date.now()}`;
-  const category = (generated && generated.category) ? generated.category : (regionMapped || (query.match(/(phu-?quoc|nha-?trang|da-?nang|ho-?chi-?minh|hanoi|ha-?long|da-?lat|dalat|hoi-?an|sapa|mui-?ne)/i) || [])[0] || '');
 
   return { title, summary_5lines, article_markdown, sources: sourcesMeta, slug, category };
 }
