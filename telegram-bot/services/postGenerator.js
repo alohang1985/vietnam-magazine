@@ -17,49 +17,25 @@ async function generate(query, sources, region, topic) {
   console.log('Gemini status:', res.status, 'ok:', res.ok);
   const data = await res.json();
   console.log('Gemini full response:', JSON.stringify(data).substring(0,500));
-  if (!data.candidates) {
-    console.error('No candidates. Error:', JSON.stringify(data.error || data).slice(0,500));
-  }
+
+  // Simplified extraction to avoid JSON parsing hang
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  if(!raw) {
-    console.error('Gemini response missing text field or empty');
-    console.log('Gemini status on empty:', res.status, 'ok:', res.ok);
-    console.log('Gemini full response on empty:', JSON.stringify(data).slice(0,2000));
-  }
-  console.log('Gemini raw preview:', (raw||'').slice(0,2048));
-  // Clean raw: remove any JSON fragment appended inside the raw text
-  let cleaned = raw || '';
-  if (cleaned) {
-    const jsonPos = cleaned.search(/\{\s*"title"\s*:/);
-    if (jsonPos === -1) {
-      const otherPos = cleaned.search(/\n\{\s*"/);
-      if (otherPos !== -1) {
-        cleaned = cleaned.slice(0, otherPos);
-        console.log('Removed trailing JSON fragment starting at newline.');
-      }
-    } else {
-      cleaned = cleaned.slice(0, jsonPos);
-      console.log('Removed trailing JSON fragment starting at index:', jsonPos);
-    }
-  }
-
-  let extracted = '';
-  if (cleaned) {
+  let article_markdown = '';
+  if (raw) {
     try {
+      const cleaned = String(raw).replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(cleaned);
-      extracted = parsed.content || parsed.article_markdown || parsed.text || '';
-      console.log('Gemini parsed JSON keys found. Using extracted content length:', extracted ? String(extracted).length : 0);
+      article_markdown = parsed.content || parsed.article_markdown || raw;
     } catch (e) {
-      extracted = cleaned;
-      console.log('Gemini cleaned is not JSON; using cleaned text length:', String(cleaned).length);
+      // not JSON, use raw
+      article_markdown = raw;
     }
   }
 
-  let article_markdown = (extracted && String(extracted).trim()) ? String(extracted).trim() : '';
-  if (!article_markdown || article_markdown.length < 200) {
-    console.warn('Article markdown too short; using snippets fallback. length=', article_markdown.length);
-    article_markdown = snippets || '내용이 충분하지 않아 간단 요약만 제공합니다.';
+  if (!article_markdown || article_markdown.length < 100) {
+    article_markdown = snippets || '내용을 불러오지 못했습니다.';
   }
+
   console.log('Final article_markdown length:', article_markdown.length);
   return { title, slug, category, article_markdown };
 }
