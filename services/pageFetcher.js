@@ -27,6 +27,7 @@ async function fetchText(url, timeout = 10000) {
     }
     // collapse whitespace
     text = text.replace(/\s+/g, ' ').trim();
+    console.log('페이지 본문 길이:', text.length, 'URL:', url);
     return text;
   } finally {
     clearTimeout(id);
