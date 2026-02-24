@@ -18,8 +18,7 @@ async function generate(query, sources, region, topic) {
   if (cleaned) {
     const jsonPos = cleaned.search(/\{\s*"title"\s*:/);
     if (jsonPos === -1) {
-      const otherPos = cleaned.search(/
-\{\s*"/);
+      const otherPos = cleaned.search(/\n\{\s*"/);
       if (otherPos !== -1) {
         cleaned = cleaned.slice(0, otherPos);
         console.log('Removed trailing JSON fragment starting at newline.');
