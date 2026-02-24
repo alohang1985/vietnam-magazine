@@ -21,7 +21,11 @@ async function generate(query, sources, region, topic) {
     console.error('No candidates. Error:', JSON.stringify(data.error || data).slice(0,500));
   }
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  if(!raw) console.error('Gemini response missing text field or empty');
+  if(!raw) {
+    console.error('Gemini response missing text field or empty');
+    console.log('Gemini status on empty:', res.status, 'ok:', res.ok);
+    console.log('Gemini full response on empty:', JSON.stringify(data).slice(0,2000));
+  }
   console.log('Gemini raw preview:', (raw||'').slice(0,2048));
   // Clean raw: remove any JSON fragment appended inside the raw text
   let cleaned = raw || '';
