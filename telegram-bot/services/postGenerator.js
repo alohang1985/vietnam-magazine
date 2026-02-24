@@ -11,10 +11,15 @@ async function generate(query, sources, region, topic) {
   const snippets = (sources||[]).map((s,i)=>`[${i+1}] ${s.snippet||''}`).join(' ');
   const prompt = '당신은 베트남 여행 전문 20대 여성 블로거입니다. ' + '주제: ' + query + ' ' + '참고자료: ' + snippets + ' ' + '위 주제로 3000자 이상 여행 블로그 포스팅을 마크다운으로 작성하세요. ' + '이모지 포함, 귀엽고 전문적으로. ' + 'JSON이나 코드블록 없이 본문 텍스트만 출력하세요.';
   const apiKey = process.env.GEMINI_API_KEY;
+  console.log('GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey;
   const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]}) });
+  console.log('Gemini status:', res.status, 'ok:', res.ok);
   const data = await res.json();
-  console.log('Gemini full response:', JSON.stringify(data).slice(0,2000));
+  console.log('Gemini full response:', JSON.stringify(data).substring(0,500));
+  if (!data.candidates) {
+    console.error('No candidates. Error:', JSON.stringify(data.error || data).slice(0,500));
+  }
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   if(!raw) console.error('Gemini response missing text field or empty');
   console.log('Gemini raw preview:', (raw||'').slice(0,2048));
