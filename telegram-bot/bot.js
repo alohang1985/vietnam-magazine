@@ -125,21 +125,6 @@ function validatePostData(data) {
   return data;
 }
 
-async function createPost(data, image) {
-  data = validatePostData(data);
-  let content = data.content;
-  if (image) content = `![${image.credit}](${image.url}) ` + content;
-  const slug = (data.slug + '-' + Date.now()).replace(/[^A-Za-z0-9\-_.~]/g, '').toLowerCase();
-  return retry(async () => {
-    const response = await axios.post(
-      `${STRAPI_URL}/api/posts`,
-      { data: { title: data.title, slug, category: data.category, article_markdown: content, published_at: new Date().toISOString() } },
-      { headers: { Authorization: `Bearer ${STRAPI_API_TOKEN}`, 'Content-Type': 'application/json' } }
-    );
-    console.log('Strapi response status:', response.status);
-    return response.data;
-  });
-}
 
 const { search } = require('../services/braveSearch');
 const { fetchText } = require('../services/pageFetcher');
@@ -151,8 +136,9 @@ async function processMessage(chatId, text) {
   try {
     await sendMessage(chatId, `⏳ "${trimmed}" 포스팅 생성 중입니다...`);
 
-    // Trigger phrase: exactly "호치민 맛집 포스팅해줘" (allow small variants)
-    if (/호치민\s*맛집\s*포스팅해줘/i.test(trimmed)) {
+    // Trigger phrase: flexible match for city + 맛집 + (포스팅해줘|포스팅 해줘|작성해줘)
+    if (/호치민\s*맛집.*(포스팅\s*해줘|포스팅해줘|작성해줘|작성\s*해줘|포스트\s*작성)/i.test(trimmed)) {
+      console.log('트리거 감지됨! 입력:', trimmed);
       // 1) Brave 실시간 검색 상위 3개
       await sendMessage(chatId, '🔎 Brave에서 상위 3개 결과를 가져옵니다...');
       const results = await search('호치민 맛집', 3, 'ko-KR');
