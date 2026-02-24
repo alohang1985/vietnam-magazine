@@ -1,9 +1,12 @@
 {
   "dependencies": {
+    "axios": "^1.13.5",
+    "cheerio": "^1.2.0",
+    "node-fetch": "^2.7.0",
     "puppeteer": "^21.3.8"
   },
   "scripts": {
-    "start": "cd apps/strapi-cms && npm run start",
+    "start": "node telegram-bot/bot.js",
     "build": "cd apps/strapi-cms && npm run build",
     "postinstall": "mkdir -p public",
     "prestart": "mkdir -p public"
