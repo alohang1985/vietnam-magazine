@@ -117,7 +117,7 @@ async function generate(query, rawResults, region = '', topic = '') {
   const geminiKey = process.env.GEMINI_API_KEY;
   let generated = null;
   if (geminiKey) {
-    const prompt = `You are a Korean travel content writer. Using the information below (search snippets and page texts), write a single Korean travel magazine article in MARKDOWN (no HTML). Follow the STYLE GUIDELINES and STRUCTURE. The article must be at least 3000 characters.\n\nSTYLE GUIDELINES:\n- Author: 20s female travel blogger who loves Vietnam\n- Tone: professional yet cute and feminine\n- Use emojis sparingly\n- Write as if you visited in person, be vivid and friendly\n- Include practical info (price ranges, locations, recommended dishes) when available\n\nSTRUCTURE (REQUIRED):\n- Intro: travel-excited opening\n- Main: 3-5 places (for each: atmosphere, recommended dish, price range, practical tip)\n- Tips section\n- Closing: warm send-off\n\nINSTRUCTIONS:\n- Use ## headings for sections\n- Do not include raw HTML\n- Title should be Korean, slug must be English-only (use region/topic mapped values or fallback to default), category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne\n\nDATA:\nQuery: ${query}\nRegion (Korean): ${region}\nTopic (Korean): ${topic}\nSnippets:\n${snippets}\n\nPage texts (truncated):\n${fullTexts}\n\nReturn JSON only (no surrounding text): {"title":"Korean title","slug":"english-slug","category":"one-of-allowed","content":"markdown content"}`;
+    const prompt = `You are a Korean travel content writer. Using the information below (search snippets and page texts), write a single Korean travel magazine article in MARKDOWN (no HTML). Follow the STYLE GUIDELINES and STRUCTURE. The article must be at least 3000 characters.\n\nSTYLE GUIDELINES:\n- Author: 20s female travel blogger who loves Vietnam\n- Tone: professional yet cute and feminine\n- Use emojis sparingly\n- Write as if you visited in person, be vivid and friendly\n- Include practical info (price ranges, locations, recommended dishes) when available\n\nSTRUCTURE (REQUIRED):\n- Intro: travel-excited opening\n- Main: 3-5 places (for each: atmosphere, recommended dish, price range, practical tip)\n- Tips section\n- Closing: warm send-off\n\nINSTRUCTIONS:\n- Use ## headings for sections\n- Do not include raw HTML\n- Title should be Korean, slug must be English-only (use region/topic mapped values or fallback to default), category must be one of: phu-quoc, nha-trang, da-nang, ho-chi-minh, hanoi, ha-long, dalat, hoi-an, sapa, mui-ne\n\nDATA:\nQuery: ${query}\nRegion (Korean): ${region}\nTopic (Korean): ${topic}\nSnippets:\n${snippets}\n\nPage texts (truncated):\n${fullTexts}\n\nIMPORTANT: DO NOT RETURN JSON. Instead return ONLY the following delimiter-formatted plain text exactly as shown (no extra commentary):\n===TITLE=== <title here> ===SLUG=== <slug-here> ===CATEGORY=== <category-here> ===CONTENT=== <markdown content here, at least 3000 characters> ===END===`;
 
     try {
       const res = await axios.post(
@@ -126,27 +126,20 @@ async function generate(query, rawResults, region = '', topic = '') {
       );
       const raw = res.data.candidates && res.data.candidates[0] && res.data.candidates[0].content && res.data.candidates[0].content.parts[0].text;
       if (raw) {
-        // try extract JSON
-        const match = raw.match(/\{[\s\S]*\}/);
-        if (match) {
-          try {
-            const obj = JSON.parse(match[0]);
-            generated = obj;
-          } catch (e) {
-            console.error('Gemini JSON parse error:', e.message);
-            // Fallback: extract fields via regex when JSON.parse fails (very long content)
-            const rawJson = match[0];
-            const titleMatch = rawJson.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-            const slugMatch = rawJson.match(/"slug"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-            const categoryMatch = rawJson.match(/"category"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-            const contentMatch = rawJson.match(/"content"\s*:\s*"([\s\S]*)"\s*\}?\s*`*\s*$/);
-            generated = {
-              title: titleMatch ? titleMatch[1].replace(/\\"/g,'"') : undefined,
-              slug: slugMatch ? slugMatch[1].replace(/\\"/g,'"') : undefined,
-              category: categoryMatch ? categoryMatch[1].replace(/\\"/g,'"') : undefined,
-              content: contentMatch ? contentMatch[1].replace(/\\"/g,'"') : undefined
-            };
-          }
+        // parse delimiter format
+        const titleMatch = raw.match(/===TITLE=== (.*?) ===SLUG===/s);
+        const slugMatch = raw.match(/===SLUG=== (.*?) ===CATEGORY===/s);
+        const categoryMatch = raw.match(/===CATEGORY=== (.*?) ===CONTENT===/s);
+        const contentMatch = raw.match(/===CONTENT=== ([\s\S]*?) ===END===/);
+        if (titleMatch && slugMatch && categoryMatch && contentMatch) {
+          generated = {
+            title: titleMatch[1].trim(),
+            slug: slugMatch[1].trim(),
+            category: categoryMatch[1].trim(),
+            content: contentMatch[1].trim()
+          };
+        } else {
+          console.error('Gemini delimiter parse failed, raw preview:', (raw||'').slice(0,300));
         }
       }
     } catch (e) {
