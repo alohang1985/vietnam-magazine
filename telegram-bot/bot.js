@@ -200,13 +200,16 @@ async function processMessage(chatId, text) {
 
       // 4) Strapi에 저장 (title, content, summary_5lines, sources)
       await sendMessage(chatId, '💾 Strapi에 저장합니다...');
+      // select hero image: first result with imageUrl
+      const heroImage = (withText.map(r=>r.imageUrl).find(u=>u) || null);
       const created = await createPost({
         title: postData.title,
         article_markdown: postData.article_markdown,
         summary_5lines: postData.summary_5lines,
         sources: postData.sources,
         category: postData.category || 'ho-chi-minh',
-        slug: postData.slug || undefined
+        slug: postData.slug || undefined,
+        hero_image: heroImage
       });
 
       // 5) 알림 (Strapi 응답에서 slug/ID 추출)

@@ -28,7 +28,8 @@ async function search(query, count = 3, ui_lang = 'ko-KR') {
     title: r.title || '',
     url: r.url,
     snippet: r.description || '',
-    siteName: r.siteName || ''
+    siteName: r.siteName || '',
+    imageUrl: (r.thumbnail && (r.thumbnail.src || r.thumbnail.original)) || (r.image && (r.image.src || r.image.url)) || null
   }));
   return results;
 }
