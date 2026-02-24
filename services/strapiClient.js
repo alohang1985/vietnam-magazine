@@ -45,6 +45,34 @@ async function createPost(payload) {
     if (!res.ok) {
       const t = await res.text();
       console.error('Strapi create post failed:', res.status, t.slice(0,1000));
+      // If slug uniqueness caused the failure, retry once with timestamp suffix
+      try {
+        const bodyJson = JSON.parse(JSON.stringify(body));
+        if (t && t.includes('slug') && bodyJson && bodyJson.data && bodyJson.data.slug) {
+          const oldSlug = bodyJson.data.slug;
+          const newSlug = (String(oldSlug).slice(0,60) + '-' + Date.now()).slice(0,80);
+          bodyJson.data.slug = newSlug;
+          console.log('Retrying Strapi createPost with new slug:', newSlug);
+          const retryRes = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${STRAPI_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bodyJson)
+          });
+          if (retryRes.ok) {
+            const retryJson = await retryRes.json();
+            console.log('Strapi retry succeeded with new slug:', newSlug);
+            return retryJson;
+          } else {
+            const retryText = await retryRes.text();
+            console.error('Strapi retry failed:', retryRes.status, retryText.slice(0,1000));
+          }
+        }
+      } catch (e) {
+        console.warn('Retry logic error:', e.message);
+      }
       throw new Error(`Strapi create post error ${res.status}: ${t}`);
     }
     const json = await res.json();
