@@ -87,16 +87,42 @@ async function getUnsplashImage(category, topic) {
 }
 
 async function generateContent(category, topic) {
-  const prompt = `당신은 베트남 현지를 직접 발로 뛰며 취재하는 여행 전문 에디터입니다. 카테고리(여행지): ${category} 이번 포스팅 주제: ${topic} 작성 규칙: - 한국어로 작성 - 실제 존재하는 장소/식당/숙소 이름 사용 (베트남어 원어명 병기) - 각 장소마다 구글맵 링크 형식으로 포함: [지도에서 보기](https://maps.google.com/?q=장소명+${category}) - 실제 가격 정보 포함 (VND 및 원화 환산) - 예약/방문 방법 구체적으로 안내 - 마크다운 형식, ## 소제목 사용 - 최소 1500자 이상 - 독자에게 직접 말하는 친근한 어투 - 글 마지막에 "💡 여행 꿀팁" 섹션 추가 아래 JSON만 반환 (다른 텍스트 없이): {"title":"제목","slug":"slug-here","content":"마크다운 본문"}`;
+  // 1) Brave search top 3 (freshness=py)
+  const braveKey = process.env.BRAVE_API_KEY;
+  let snippets = '';
+  try {
+    if (braveKey) {
+      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(topic)}&source=web&count=3&ui_lang=ko-KR&freshness=py`;
+      const res = await axios.get(url, { headers: { 'X-Subscription-Token': braveKey, Accept: 'application/json' } });
+      const results = res.data.results || [];
+      snippets = results.map((r, i) => `[${i+1}] ${r.description || r.snippet || r.title || ''}`).join('\n');
+      console.log('Brave snippets collected:', snippets.slice(0,500));
+    } else {
+      console.warn('BRAVE_API_KEY not set; skipping Brave search');
+    }
+  } catch (e) {
+    console.warn('Brave search failed:', e.message);
+  }
 
+  // 2) Build Gemini prompt with snippets
+  const prompt = `당신은 베트남 여행 전문 20대 여성 블로거입니다. 반드시 '${topic}'에 대한 포스팅만 작성하세요. 절대 다른 주제로 벗어나지 마세요. [참고 자료] ${snippets} [작성 조건] - 주제: ${topic} - 스타일: 20대 여성 여행 블로거, 귀엽고 전문적, 이모지 포함 - 분량: 3000자 이상 - 형식: 순수 마크다운 본문만 출력 - JSON이나 코드블록 없이 텍스트만 반환`;
+
+  // 3) Call Gemini (use gemini-2.5-flash-lite)
   const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
     { contents: [{ parts: [{ text: prompt }] }] }
   );
 
-  const text = response.data.candidates[0].content.parts[0].text;
-  const cleaned = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(cleaned);
+  const raw = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if (!raw) console.error('Gemini returned empty text for topic:', topic, 'response preview:', JSON.stringify(response.data).substring(0,500));
+
+  // 4) Title and slug generation
+  const title = `${topic} 완벽 가이드: 현지인이 추천하는 BEST 5`;
+  const slugBase = topic.replace(/[^A-Za-z0-9\-_.~]/g, '-').toLowerCase();
+  const slug = `${slugBase}-${Date.now()}`;
+
+  // 5) Return object compatible with createPost (title, slug, content)
+  return { title, slug, content: raw };
 }
 
 async function createPost(data, category, image) {
