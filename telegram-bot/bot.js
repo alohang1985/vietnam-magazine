@@ -157,25 +157,10 @@ function validatePostData(data) {
 }
 
 
-const path = require('path');
-const fs = require('fs');
-function resolveService(file){
-  const candidates = [
-    path.join(__dirname, 'services', file), // ✅ /app/services/xxx (Railway flatten 케이스)
-    path.join(__dirname, '..', 'services', file), // ✅ /app/telegram-bot/../services/xxx (repo 케이스)
-    path.join(process.cwd(), 'services', file), // ✅ cwd/services (예외 케이스)
-  ];
-  for (const p of candidates) {
-    const js = p.endsWith('.js') ? p : (p + '.js');
-    if (fs.existsSync(js)) return require(js);
-    if (fs.existsSync(p)) return require(p);
-  }
-  throw new Error('Service module not found: ' + file + ' | tried: ' + candidates.join(' , '));
-}
-const { search } = resolveService('braveSearch');
-const { fetchText } = resolveService('pageFetcher');
-const { generate } = resolveService('postGenerator');
-const { createPost } = resolveService('strapiClient');
+const { search } = require('./services/braveSearch');
+const { fetchText } = require('./services/pageFetcher');
+const { generate } = require('./services/postGenerator');
+const { createPost } = require('./services/strapiClient');
 
 async function processMessage(chatId, text) {
   const trimmed = text.trim();

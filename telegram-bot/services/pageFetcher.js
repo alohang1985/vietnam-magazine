@@ -1,4 +1,5 @@
-const fetch = require('node-fetch');
+// Node 18+ (Node 22) includes global fetch; no node-fetch required
+const fetch = globalThis.fetch;
 const cheerio = require('cheerio');
 
 // Fetch URL and extract main textual content (conservative: article/body text only).
