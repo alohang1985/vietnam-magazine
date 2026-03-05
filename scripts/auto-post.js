@@ -107,10 +107,10 @@ async function generateContent(category, topic) {
 
   // 2) Build Gemini prompt with snippets
   console.log('Snippets:', (snippets||'').substring(0,200));
-  const prompt = `당신의 이름은 '릴리'입니다. 베트남을 사랑하는 20대 여성 여행 블로거 릴리로서 포스팅을 작성하세요.` + ' ' + `당신은 베트남 여행 전문 20대 여성 블로거입니다. 반드시 '${topic}'에 대한 포스팅만 작성하세요. 절대 다른 주제로 벗어나지 마세요. [참고 자료] ${snippets} 
+  const prompt = `당신의 이름은 '릴리'입니다. 베트남을 사랑하는 20대 여성 여행 블로거 릴리로서 포스팅을 작성하세요.` + ' ' + `당신은 베트남 여행 전문 20대 여성 블로거입니다. 반드시 '${topic}'에 대한 포스팅만 작성하세요. 절대 다른 주제로 벗어나지 마세요. [참고 자료] ${snippets}
 [주의] 반드시 실제로 존재하는 구체적인 식당/장소 이름을 사용해야 해. [식당 이름 1] 같은 플레이스홀더 절대 사용 금지. 아래 참고 자료에서 언급된 실제 장소명을 그대로 사용해. 만약 참고 자료에 구체적인 장소명이 없으면 베트남에 실제로 존재하는 유명한 장소명을 사용해. [작성 조건] - 주제: ${topic} - 스타일: 20대 여성 여행 블로거, 귀엽고 전문적, 이모지 포함 - 분량: 3000자 이상 - 형식: 순수 마크다운 본문만 출력 - JSON이나 코드블록 없이 텍스트만 반환`;
 
-  // 3) Call Gemini (use gemini-2.5-flash-lite)
+  // 3) Call Gemini
   const response = await axios.post(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
     { contents: [{ parts: [{ text: prompt }] }] }
@@ -119,23 +119,24 @@ async function generateContent(category, topic) {
   const raw = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   if (!raw) console.error('Gemini returned empty text for topic:', topic, 'response preview:', JSON.stringify(response.data).substring(0,500));
 
-  // 4) Title and slug generation
+  // 4) Title and slug generation (clean, unique slug using category + timestamp)
   const title = `${topic} 완벽 가이드: 현지인이 추천하는 BEST 5`;
-  const slugBase = topic.replace(/[^A-Za-z0-9\-_.~]/g, '-').toLowerCase();
-  const slug = `${slugBase}-${Date.now()}`;
+  const slug = `${category}-${Date.now()}`;
 
-  // 5) Return object compatible with createPost (title, slug, content)
   return { title, slug, content: raw };
 }
 
 async function createPost(data, category, image) {
   try {
+    const now = new Date().toISOString();
     const postData = {
       title: data.title,
-      slug: (data.slug + '-' + Date.now()).replace(/[^A-Za-z0-9\-_.~]/g, '').toLowerCase(),
+      slug: data.slug,
       category: category,
       article_markdown: data.content,
-      published_at: new Date().toISOString()
+      status: 'published',
+      published_at: now,
+      publishedAt: now,
     };
     if (image) {
       postData.article_markdown = `![${image.credit}](${image.url}) *[${image.credit}](${image.link})* ` + data.content;
