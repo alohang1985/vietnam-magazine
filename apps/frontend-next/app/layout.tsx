@@ -44,8 +44,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
         <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
-        <footer className="border-t py-6 mt-12 text-center text-sm text-gray-500">
-          © Vietnam Travel Magazine
+        <footer className="border-t py-6 mt-12 text-sm text-gray-500">
+          <div className="max-w-5xl mx-auto px-4 flex flex-col items-center gap-3">
+            <nav className="flex gap-4">
+              <a href="/about" className="hover:text-travel-green">소개</a>
+              <a href="/contact" className="hover:text-travel-green">문의</a>
+              <a href="/privacy" className="hover:text-travel-green">개인정보처리방침</a>
+            </nav>
+            <p>© Vietnam Travel Magazine</p>
+          </div>
         </footer>
       </body>
     </html>
