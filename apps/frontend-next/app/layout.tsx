@@ -32,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <head>
         <meta name="theme-color" content="#1a6b54" />
+        <meta name="google-adsense-account" content="ca-pub-9331012730637070" />
       </head>
       <body className="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-sans">
         <header className="border-b bg-cream-bg dark:bg-gray-800">
