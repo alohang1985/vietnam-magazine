@@ -15,6 +15,13 @@ const categoryLabels: Record<string, string> = {
   'dalat': '달랏', 'hoi-an': '호이안', 'sapa': '사파', 'mui-ne': '무이네',
 }
 
+// 마크다운에서 첫 번째 이미지 URL 추출
+function extractFirstImage(markdown: string): string | null {
+  if (!markdown) return null
+  const match = markdown.match(/!\[.*?\]\((https?:\/\/[^)]+)\)/)
+  return match ? match[1] : null
+}
+
 function formatDate(dateStr: string) {
   const d = new Date(dateStr)
   const y = d.getFullYear()
@@ -50,10 +57,11 @@ export default async function Home() {
               const attr = p.attributes
               const date = attr.published_at || attr.publishedAt || attr.createdAt
               const categoryLabel = categoryLabels[attr.category] || attr.category
+              const imageUrl = attr.hero_image?.url || extractFirstImage(attr.article_markdown)
               return (
                 <article key={p.id} className="card p-4 flex flex-col">
-                  {attr.hero_image?.url ? (
-                    <Image src={attr.hero_image.url} alt={attr.title} width={600} height={300} className="w-full h-40 object-cover rounded-md mb-3" />
+                  {imageUrl ? (
+                    <img src={imageUrl} alt={attr.title} loading="lazy" className="w-full h-40 object-cover rounded-md mb-3" />
                   ) : (
                     <div className="w-full h-40 bg-gray-200 rounded-md mb-3" />
                   )}
