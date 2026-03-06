@@ -1,70 +1,113 @@
 const axios = require('axios');
+
 const STRAPI_URL = process.env.STRAPI_URL;
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 
+// ─── 도시 & 토픽 설정 ────────────────────────────────────
 const categories = ['phu-quoc','nha-trang','da-nang','ho-chi-minh','hanoi','ha-long','dalat','hoi-an','sapa','mui-ne'];
 const categoryNamesKo = {
-  'phu-quoc': '푸꾸옥',
-  'nha-trang': '나트랑',
-  'da-nang': '다낭',
-  'ho-chi-minh': '호치민',
-  'hanoi': '하노이',
-  'ha-long': '하롱베이',
-  'dalat': '달랏',
-  'hoi-an': '호이안',
-  'sapa': '사파',
-  'mui-ne': '무이네',
+  'phu-quoc': '푸꾸옥', 'nha-trang': '나트랑', 'da-nang': '다낭',
+  'ho-chi-minh': '호치민', 'hanoi': '하노이', 'ha-long': '하롱베이',
+  'dalat': '달랏', 'hoi-an': '호이안', 'sapa': '사파', 'mui-ne': '무이네',
 };
 const categoryNamesEn = {
-  'phu-quoc': 'phu quoc vietnam',
-  'nha-trang': 'nha trang vietnam',
-  'da-nang': 'da nang vietnam',
-  'ho-chi-minh': 'ho chi minh city vietnam',
-  'hanoi': 'hanoi vietnam',
-  'ha-long': 'halong bay vietnam',
-  'dalat': 'dalat vietnam',
-  'hoi-an': 'hoi an vietnam',
-  'sapa': 'sapa vietnam',
-  'mui-ne': 'mui ne vietnam',
+  'phu-quoc': 'phu quoc vietnam', 'nha-trang': 'nha trang vietnam',
+  'da-nang': 'da nang vietnam', 'ho-chi-minh': 'ho chi minh city vietnam',
+  'hanoi': 'hanoi vietnam', 'ha-long': 'halong bay vietnam',
+  'dalat': 'dalat vietnam', 'hoi-an': 'hoi an vietnam',
+  'sapa': 'sapa vietnam', 'mui-ne': 'mui ne vietnam',
 };
 
 const topics = [
-  { keyword: '맛집 추천', type: 'food', searchQuery: '맛집 추천 현지인 로컬' },
-  { keyword: '길거리 음식 추천', type: 'food', searchQuery: '길거리 음식 먹어봐야 할' },
-  { keyword: '카페 추천', type: 'cafe', searchQuery: '카페 추천 분위기' },
-  { keyword: '루프탑 바 추천', type: 'travel', searchQuery: '루프탑 바 야경' },
-  { keyword: '해산물 맛집 추천', type: 'food', searchQuery: '해산물 맛집 가격' },
-  { keyword: '쌀국수 맛집 추천', type: 'food', searchQuery: '쌀국수 맛집 현지인' },
-  { keyword: '반미 맛집 추천', type: 'food', searchQuery: '반미 맛집 추천' },
-  { keyword: '여행코스 3박4일', type: 'travel', searchQuery: '여행코스 3박4일 일정' },
-  { keyword: '여행코스 4박5일', type: 'travel', searchQuery: '여행코스 4박5일 일정' },
-  { keyword: '가볼만한곳 추천', type: 'travel', searchQuery: '가볼만한곳 관광지' },
-  { keyword: '호텔 추천', type: 'hotel', searchQuery: '호텔 추천 가성비' },
-  { keyword: '리조트 추천', type: 'hotel', searchQuery: '리조트 추천 풀빌라' },
-  { keyword: '여행 경비 총정리', type: 'travel', searchQuery: '여행 경비 비용 물가' },
-  { keyword: '야시장 추천', type: 'travel', searchQuery: '야시장 추천 먹거리' },
-  { keyword: '마사지 스파 추천', type: 'travel', searchQuery: '마사지 스파 가성비' },
-  { keyword: '쇼핑 추천', type: 'travel', searchQuery: '쇼핑 기념품 추천' },
-  { keyword: '혼자 여행 가이드', type: 'travel', searchQuery: '혼자 여행 자유여행' },
-  { keyword: '가족 여행 코스', type: 'travel', searchQuery: '가족 여행 아이와 함께' },
-  { keyword: '커플 여행 코스', type: 'travel', searchQuery: '커플 여행 데이트' },
-  { keyword: '교통 이용 가이드', type: 'travel', searchQuery: '택시 그랩 교통 이용법' },
-  { keyword: '숙소 가성비 추천', type: 'hotel', searchQuery: '숙소 가성비 저렴한' },
-  { keyword: '사원 유적지 추천', type: 'travel', searchQuery: '사원 유적지 역사' },
-  { keyword: '일출 일몰 명소', type: 'travel', searchQuery: '일출 일몰 명소 포토' },
-  { keyword: '우기 여행 팁', type: 'travel', searchQuery: '우기 여행 비 대비' },
-  { keyword: '디저트 카페 추천', type: 'cafe', searchQuery: '디저트 카페 빙수' },
-  { keyword: '다이빙 스노클링 추천', type: 'travel', searchQuery: '다이빙 스노클링 체험' },
-  { keyword: '쿠킹클래스 체험', type: 'travel', searchQuery: '쿠킹클래스 요리 체험' },
-  { keyword: '환전 팁 총정리', type: 'travel', searchQuery: '환전 현금 팁' },
-  { keyword: '유심 와이파이 추천', type: 'travel', searchQuery: '유심 이심 와이파이' },
-  { keyword: '여행 준비물 체크리스트', type: 'travel', searchQuery: '여행 준비물 필수' },
+  { keyword: '맛집 추천', type: 'food', searchQuery: '맛집 추천 현지인 로컬 2025 2026' },
+  { keyword: '길거리 음식', type: 'food', searchQuery: '길거리 음식 꼭 먹어봐야 할 추천' },
+  { keyword: '카페 추천', type: 'cafe', searchQuery: '카페 추천 분위기 좋은 인스타' },
+  { keyword: '루프탑 바', type: 'travel', searchQuery: '루프탑 바 야경 추천' },
+  { keyword: '해산물 맛집', type: 'food', searchQuery: '해산물 맛집 가격 싼 곳' },
+  { keyword: '쌀국수 맛집', type: 'food', searchQuery: '쌀국수 맛집 현지인 추천' },
+  { keyword: '반미 맛집', type: 'food', searchQuery: '반미 맛집 추천 현지' },
+  { keyword: '여행코스 3박4일', type: 'travel', searchQuery: '여행코스 3박4일 일정 추천' },
+  { keyword: '여행코스 4박5일', type: 'travel', searchQuery: '여행코스 4박5일 일정 추천' },
+  { keyword: '가볼만한곳', type: 'travel', searchQuery: '가볼만한곳 관광지 추천' },
+  { keyword: '호텔 추천', type: 'hotel', searchQuery: '호텔 추천 가성비 2025 2026' },
+  { keyword: '리조트 추천', type: 'hotel', searchQuery: '리조트 추천 풀빌라 럭셔리' },
+  { keyword: '여행 경비', type: 'travel', searchQuery: '여행 경비 비용 물가 총정리' },
+  { keyword: '야시장 추천', type: 'travel', searchQuery: '야시장 추천 먹거리 쇼핑' },
+  { keyword: '마사지 스파', type: 'travel', searchQuery: '마사지 스파 가성비 추천' },
+  { keyword: '쇼핑 추천', type: 'travel', searchQuery: '쇼핑 기념품 시장 추천' },
+  { keyword: '혼자 여행', type: 'travel', searchQuery: '혼자 여행 자유여행 가이드' },
+  { keyword: '가족 여행', type: 'travel', searchQuery: '가족 여행 아이와 함께 코스' },
+  { keyword: '커플 여행', type: 'travel', searchQuery: '커플 여행 데이트 코스' },
+  { keyword: '교통 가이드', type: 'travel', searchQuery: '택시 그랩 교통 이용법 팁' },
+  { keyword: '가성비 숙소', type: 'hotel', searchQuery: '숙소 가성비 저렴한 게스트하우스' },
+  { keyword: '일출 일몰 명소', type: 'travel', searchQuery: '일출 일몰 명소 포토스팟' },
+  { keyword: '우기 여행 팁', type: 'travel', searchQuery: '우기 여행 비 대비 시기' },
+  { keyword: '다이빙 스노클링', type: 'travel', searchQuery: '다이빙 스노클링 체험 추천' },
+  { keyword: '쿠킹클래스', type: 'travel', searchQuery: '쿠킹클래스 요리 체험 추천' },
+  { keyword: '환전 팁', type: 'travel', searchQuery: '환전 현금 팁 어디서' },
+  { keyword: '유심 와이파이', type: 'travel', searchQuery: '유심 이심 와이파이 추천 가격' },
+  { keyword: '여행 준비물', type: 'travel', searchQuery: '여행 준비물 필수 체크리스트' },
+  { keyword: '비치 해변 추천', type: 'travel', searchQuery: '비치 해변 추천 예쁜 바다' },
+  { keyword: '로컬 시장 투어', type: 'travel', searchQuery: '재래시장 로컬 시장 투어' },
 ];
 
-const unsplashTypeMap = { food: 'food restaurant', cafe: 'cafe coffee', hotel: 'hotel resort', travel: 'travel' };
+const unsplashTypeMap = { food: 'food restaurant', cafe: 'cafe coffee', hotel: 'hotel resort', travel: 'travel landscape' };
 
+// ─── 기존 포스트 가져오기 (중복 방지) ──────────────────────
+async function getExistingPosts() {
+  try {
+    const res = await axios.get(
+      `${STRAPI_URL}/api/posts?fields[0]=title&fields[1]=category&fields[2]=slug&pagination[limit]=200&sort[0]=publishedAt:desc`,
+      { headers: { Authorization: `Bearer ${STRAPI_API_TOKEN}` } }
+    );
+    return (res.data.data || []).map(p => ({
+      title: p.attributes.title,
+      category: p.attributes.category,
+      slug: p.attributes.slug,
+    }));
+  } catch (e) {
+    console.warn('Failed to fetch existing posts:', e.message);
+    return [];
+  }
+}
+
+// ─── 중복되지 않는 토픽 선택 ─────────────────────────────
+function selectTopic(existingPosts) {
+  const existingKeys = new Set(
+    existingPosts.map(p => `${p.category}-${p.title?.split('|')[0]?.trim()?.toLowerCase()}`)
+  );
+
+  // 시도 최대 50번
+  for (let i = 0; i < 50; i++) {
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const topic = topics[Math.floor(Math.random() * topics.length)];
+    const cityKo = categoryNamesKo[category];
+    const testKey = `${category}-${cityKo} ${topic.keyword}`.toLowerCase();
+
+    // 비슷한 기존 포스트가 있는지 체크
+    const isDuplicate = existingPosts.some(p => {
+      const pTitle = (p.title || '').toLowerCase();
+      return p.category === category &&
+        pTitle.includes(topic.keyword.split(' ')[0]);
+    });
+
+    if (!isDuplicate) {
+      return { category, topic };
+    }
+    console.log(`Skipping duplicate: ${cityKo} ${topic.keyword}`);
+  }
+
+  // 50번 시도 후에도 못 찾으면 그냥 랜덤
+  console.log('No unique topic found after 50 tries, using random');
+  return {
+    category: categories[Math.floor(Math.random() * categories.length)],
+    topic: topics[Math.floor(Math.random() * topics.length)],
+  };
+}
+
+// ─── Unsplash 이미지 ─────────────────────────────────────
 async function getUnsplashImage(category, topicType) {
   if (!UNSPLASH_ACCESS_KEY) return null;
   try {
@@ -73,7 +116,6 @@ async function getUnsplashImage(category, topicType) {
       params: { query, per_page: 5, orientation: 'landscape' },
       headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` }
     });
-    // Pick a random photo from top 5 to avoid always using the same image
     const photos = res.data.results || [];
     const photo = photos[Math.floor(Math.random() * photos.length)];
     if (!photo) return null;
@@ -84,107 +126,197 @@ async function getUnsplashImage(category, topicType) {
   }
 }
 
-async function searchReferences(category, topic) {
-  // Search Brave for real, recent blog posts about this topic
-  const braveKey = process.env.BRAVE_API_KEY;
-  if (!braveKey) {
-    console.warn('BRAVE_API_KEY not set; skipping search');
-    return '';
-  }
+// ─── Step 1: Gemini로 실시간 데이터 리서치 (Google Search grounding) ──
+async function researchTopic(cityKo, topic) {
+  const searchPrompt = `당신은 베트남 여행 리서처입니다. "${cityKo} ${topic.searchQuery}" 에 대해 Google에서 최신 정보를 검색하고, 아래 형식으로 정리해주세요.
 
-  const cityKo = categoryNamesKo[category];
-  const searchTerm = `${cityKo} ${topic.searchQuery}`;
+검색 결과에서 다음 데이터를 추출하세요:
+1. 실제 장소/식당/카페 이름 (최소 5개, 영어명 병기)
+2. 각 장소의 가격 정보 (베트남 동 기준)
+3. 각 장소의 주소 또는 위치
+4. 각 장소의 영업시간
+5. 각 장소에 대한 실제 리뷰나 평가 포인트
+6. 추천 메뉴나 추천 포인트
+7. 주의사항이나 팁
+
+반드시 2024-2026년 최신 정보를 기준으로 작성하세요.
+가격은 정확한 숫자로 작성하세요 (예: 50,000동).
+존재하지 않는 장소를 만들어내지 마세요.
+
+JSON이나 코드블록 없이, 자연스러운 텍스트로 정리해주세요.`;
 
   try {
-    const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(searchTerm)}&source=web&count=5&ui_lang=ko-KR&freshness=pm`;
-    const res = await axios.get(url, {
-      headers: { 'X-Subscription-Token': braveKey, Accept: 'application/json' }
-    });
-    const results = (res.data.web?.results || res.data.results || []).slice(0, 5);
-    const snippets = results.map((r, i) => {
-      return `${i + 1}. ${r.title || ''}\n   ${r.description || r.snippet || ''}`;
-    }).join('\n\n');
-    console.log(`Brave search: "${searchTerm}" → ${results.length} results`);
-    console.log('Snippets preview:', snippets.substring(0, 500));
-    return snippets;
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        contents: [{ parts: [{ text: searchPrompt }] }],
+        tools: [{ google_search: {} }],
+      }
+    );
+
+    const parts = response.data?.candidates?.[0]?.content?.parts || [];
+    const textParts = parts.filter(p => p.text).map(p => p.text);
+    const researchData = textParts.join('\n');
+
+    // grounding metadata에서 소스 URL 추출
+    const groundingMeta = response.data?.candidates?.[0]?.groundingMetadata;
+    const sources = groundingMeta?.groundingChunks?.map(c => c.web?.uri).filter(Boolean) || [];
+
+    console.log(`Research completed: ${researchData.length} chars, ${sources.length} sources`);
+    if (sources.length > 0) {
+      console.log('Sources:', sources.slice(0, 5).join(', '));
+    }
+
+    return { data: researchData, sources };
   } catch (e) {
-    console.warn('Brave search failed:', e.message);
-    return '';
+    console.warn('Research with Google Search failed:', e.response?.data?.error?.message || e.message);
+    // fallback: Google Search 없이 Gemini 지식만 사용
+    console.log('Falling back to Gemini knowledge only...');
+    try {
+      const fallbackResponse = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          contents: [{ parts: [{ text: searchPrompt.replace('Google에서 최신 정보를 검색하고, ', '') }] }],
+        }
+      );
+      const text = fallbackResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return { data: text, sources: [] };
+    } catch (e2) {
+      console.error('Fallback also failed:', e2.message);
+      return { data: '', sources: [] };
+    }
   }
 }
 
-async function generateContent(category, topic, snippets) {
+// ─── Step 2: 리서치 데이터 기반으로 글 생성 ──────────────
+async function generateContent(category, topic, research) {
   const cityKo = categoryNamesKo[category];
   const fullKeyword = `${cityKo} ${topic.keyword}`;
 
-  const prompt = `당신은 베트남 현지에서 오래 거주한 경험 많은 여행 전문가입니다. 한국인 여행자를 위한 실용적인 여행 가이드를 작성하세요.
+  const prompt = `당신은 베트남 현지에서 오래 거주한 경험 많은 여행 전문가입니다. 아래 리서치 데이터를 바탕으로 한국인 여행자를 위한 실용적인 여행 가이드를 작성하세요.
 
 [글의 주제]
 ${fullKeyword}
 
-[참고 자료 - 최신 검색 결과]
-${snippets || '(참고 자료 없음 - 당신의 지식을 기반으로 작성하세요)'}
+[리서치 데이터 - 실제 검색 기반 정보]
+${research.data || '(리서치 데이터 없음 - 당신의 지식을 기반으로 작성하세요)'}
+
+${research.sources.length > 0 ? `[참고한 출처]\n${research.sources.slice(0, 5).join('\n')}` : ''}
 
 [작성 규칙]
-1. 톤: 경험 많은 여행자가 친구에게 알려주는 느낌. 딱딱하지 않되 전문적. 이모지는 사용하지 않음.
-2. 도입부: "안녕~" 같은 인사 없이, 바로 핵심으로 진입. 예: "${cityKo}에서 뭘 먹어야 할지 고민이라면, 이 글 하나로 해결됩니다."
+1. 톤: 경험 많은 여행자가 친구에게 알려주는 느낌. 딱딱하지 않되 전문적. 이모지 사용하지 않음.
+2. 도입부: "안녕~" 같은 인사 없이, 바로 핵심으로 진입. 예: "${cityKo}에서 뭘 먹어야 할지 고민이라면, 이 글 하나면 충분합니다."
 3. 본문 구조:
    - 각 장소/항목마다: 이름(영어 병기) → 2-3문장 설명 → 추천 메뉴/포인트 → 실용 정보(주소, 가격, 영업시간)
    - 짧은 문단 (2-3줄씩)
-   - 가격은 반드시 베트남 동 + 한화 환산 병기
-4. 반드시 실제 존재하는 구체적인 장소/식당 이름을 사용. 플레이스홀더 절대 금지.
-5. 참고 자료에 언급된 실제 장소명을 우선 활용. 없으면 실제 존재하는 유명한 곳을 사용.
-6. 글 후반부에 "가기 전에 알아두면 좋은 것들" 섹션을 넣되, Q&A 형식이 아닌 경험담처럼 자연스럽게 작성. 예: "저도 처음에 카드만 들고 갔다가 당황했는데, 로컬 식당은 거의 현금만 받습니다."
-7. 예산 가이드 표를 포함 (저/중/고 예산별 비용)
-8. 분량: 3000자 이상
-9. 형식: 순수 마크다운 본문만 출력. JSON이나 코드블록 없이 텍스트만 반환.
-10. 제목은 출력하지 마세요. 본문만 작성하세요.
+   - 가격은 반드시 베트남 동 + 한화 환산 병기 (1,000동 ≈ 55원 기준)
+   - 소제목은 ## 사용
+4. 반드시 리서치 데이터에 있는 실제 장소/식당 이름을 사용. 없는 곳을 만들어내지 마세요.
+5. 글 후반부에 "## 가기 전에 알아두면 좋은 것들" 섹션. Q&A가 아닌 경험담처럼 자연스럽게. 예: "저도 처음에 카드만 들고 갔다가 당황했는데, 로컬 식당은 거의 현금만 받습니다."
+6. "## 예산 가이드" 섹션에 표 포함:
+   | 항목 | 저예산 | 중간 | 럭셔리 |
+   가격은 동+원화 병기
+7. 분량: 3000자 이상, 충실하게 작성
+8. 형식: 순수 마크다운 본문만 출력. 제목은 출력하지 마세요. JSON이나 코드블록(\`\`\`) 없이 본문만.
 
 [SEO 키워드 - 글에 자연스럽게 포함]
 메인: ${fullKeyword}
-서브: ${cityKo} 여행, ${cityKo} 가볼만한곳, 베트남 여행`;
+서브: ${cityKo} 여행, ${cityKo} 가볼만한곳, 베트남 여행, 베트남 자유여행`;
 
   const response = await axios.post(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
-    { contents: [{ parts: [{ text: prompt }] }] }
+    {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 8192,
+        temperature: 0.8,
+      },
+    }
   );
 
   const raw = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   if (!raw) {
     console.error('Gemini returned empty text for:', fullKeyword);
     console.error('Response preview:', JSON.stringify(response.data).substring(0, 500));
+    throw new Error('Empty content generated');
   }
 
-  // Generate SEO-friendly title
+  console.log(`Content generated: ${raw.length} chars`);
+
+  // 제목 생성
   const titleTemplates = [
     `${fullKeyword} BEST 7 | 현지인이 진짜 가는 곳만 총정리 (2026)`,
-    `${fullKeyword} | 실패 없는 현지 로컬 가이드 (2026)`,
+    `${fullKeyword} | 현지 거주자 추천 가이드 (2026)`,
     `${fullKeyword} TOP 5 | 관광객은 모르는 찐 로컬 리스트`,
-    `${fullKeyword} | 현지 거주자가 직접 추천하는 리스트 (2026)`,
+    `${fullKeyword} 완벽 가이드 | 가격, 위치, 영업시간까지 (2026)`,
   ];
   const title = titleTemplates[Math.floor(Math.random() * titleTemplates.length)];
 
-  // Clean slug
   const slug = `${category}-${topic.keyword.replace(/\s+/g, '-')}-${Date.now()}`;
 
   return { title, slug, content: raw };
 }
 
-async function createPost(data, category, image) {
+// ─── Step 3: 요약 + 메타 생성 ────────────────────────────
+async function generateMeta(title, content, cityKo, keyword) {
+  const metaPrompt = `아래 글의 핵심 내용을 기반으로 두 가지를 생성하세요.
+
+제목: ${title}
+
+본문 앞부분:
+${content.substring(0, 1500)}
+
+1. summary_5lines: 글의 핵심 정보를 5줄로 요약 (각 줄 앞에 ①②③④⑤ 번호). 구체적인 장소명, 가격 포함.
+2. meta_description: SEO용 메타 설명 (150자 이내). "${cityKo} ${keyword}" 키워드 포함.
+
+반드시 아래 형식으로만 출력:
+SUMMARY:
+(5줄 요약)
+META:
+(메타 설명)`;
+
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+      { contents: [{ parts: [{ text: metaPrompt }] }] }
+    );
+
+    const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const summaryMatch = text.match(/SUMMARY:\s*([\s\S]*?)META:/);
+    const metaMatch = text.match(/META:\s*([\s\S]*?)$/);
+
+    return {
+      summary: summaryMatch ? summaryMatch[1].trim() : '',
+      metaDescription: metaMatch ? metaMatch[1].trim() : '',
+    };
+  } catch (e) {
+    console.warn('Meta generation failed:', e.message);
+    return { summary: '', metaDescription: '' };
+  }
+}
+
+// ─── Strapi에 포스트 생성 ────────────────────────────────
+async function createPost(data, category, image, meta) {
   try {
     const now = new Date().toISOString();
+    let articleContent = data.content;
+
+    if (image) {
+      articleContent = `![${image.credit}](${image.url})\n*[${image.credit}](${image.link})*\n\n` + articleContent;
+    }
+
     const postData = {
       title: data.title,
       slug: data.slug,
       category: category,
-      article_markdown: data.content,
+      article_markdown: articleContent,
+      summary_5lines: meta.summary || '',
+      meta_description: meta.metaDescription || '',
       status: 'published',
       published_at: now,
       publishedAt: now,
     };
-    if (image) {
-      postData.article_markdown = `![${image.credit}](${image.url})\n*[${image.credit}](${image.link})*\n\n` + data.content;
-    }
+
     const response = await axios.post(
       `${STRAPI_URL}/api/posts`,
       { data: postData },
@@ -198,28 +330,42 @@ async function createPost(data, category, image) {
   }
 }
 
+// ─── 메인 실행 ───────────────────────────────────────────
 async function main() {
-  const category = categories[Math.floor(Math.random() * categories.length)];
-  const topic = topics[Math.floor(Math.random() * topics.length)];
-  const cityKo = categoryNamesKo[category];
+  console.log('=== Vietnam Magazine Auto Post v3 ===');
+  console.log(`Time: ${new Date().toISOString()}`);
 
+  // 1. 기존 포스트 확인
+  const existingPosts = await getExistingPosts();
+  console.log(`Existing posts: ${existingPosts.length}`);
+
+  // 2. 중복 안 되는 토픽 선택
+  const { category, topic } = selectTopic(existingPosts);
+  const cityKo = categoryNamesKo[category];
   console.log(`Selected: ${cityKo} / ${topic.keyword}`);
 
-  // Step 1: Search for real data
-  const snippets = await searchReferences(category, topic);
+  // 3. 실시간 리서치 (Google Search grounding)
+  console.log('Researching with Google Search...');
+  const research = await researchTopic(cityKo, topic);
+  console.log(`Research data: ${research.data.length} chars`);
 
-  // Step 2: Generate content based on real data + get image
+  // 4. 글 생성 + 이미지 동시 처리
+  console.log('Generating content...');
   const [content, image] = await Promise.all([
-    generateContent(category, topic, snippets),
-    getUnsplashImage(category, topic.type)
+    generateContent(category, topic, research),
+    getUnsplashImage(category, topic.type),
   ]);
-
   console.log('Generated title:', content.title);
-  if (image) console.log('Image found:', image.url);
 
-  // Step 3: Publish
-  const post = await createPost(content, category, image);
-  console.log('Post created:', post.data?.id);
+  // 5. 메타 정보 생성
+  console.log('Generating meta...');
+  const meta = await generateMeta(content.title, content.content, cityKo, topic.keyword);
+
+  // 6. 포스트 발행
+  if (image) console.log('Image:', image.url);
+  const post = await createPost(content, category, image, meta);
+  console.log(`Post created: ID ${post.data?.id}`);
+  console.log('=== Done ===');
 }
 
 main().catch(err => {
