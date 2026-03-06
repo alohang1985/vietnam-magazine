@@ -59,14 +59,19 @@ const unsplashTypeMap = { food: 'food restaurant', cafe: 'cafe coffee', hotel: '
 async function getExistingPosts() {
   try {
     const res = await axios.get(
-      `${STRAPI_URL}/api/posts?fields[0]=title&fields[1]=category&fields[2]=slug&pagination[limit]=200&sort[0]=publishedAt:desc`,
+      `${STRAPI_URL}/api/posts?fields[0]=title&fields[1]=category&fields[2]=slug&fields[3]=article_markdown&pagination[pageSize]=200`,
       { headers: { Authorization: `Bearer ${STRAPI_API_TOKEN}` } }
     );
-    return (res.data.data || []).map(p => ({
-      title: p.attributes.title,
-      category: p.attributes.category,
-      slug: p.attributes.slug,
-    }));
+    return (res.data.data || []).map(p => {
+      const md = p.attributes.article_markdown || '';
+      const imgMatch = md.match(/!\[.*?\]\((https?:\/\/[^)]+)\)/);
+      return {
+        title: p.attributes.title,
+        category: p.attributes.category,
+        slug: p.attributes.slug,
+        imageUrl: imgMatch ? imgMatch[1] : null,
+      };
+    });
   } catch (e) {
     console.warn('Failed to fetch existing posts:', e.message);
     return [];
@@ -108,16 +113,20 @@ function selectTopic(existingPosts) {
 }
 
 // ─── Unsplash 이미지 ─────────────────────────────────────
-async function getUnsplashImage(category, topicType) {
+async function getUnsplashImage(category, topicType, usedImageUrls) {
   if (!UNSPLASH_ACCESS_KEY) return null;
   try {
     const query = `${categoryNamesEn[category]} ${unsplashTypeMap[topicType] || 'travel'}`;
+    // 30장 가져와서 이미 사용된 것 제외
     const res = await axios.get('https://api.unsplash.com/search/photos', {
-      params: { query, per_page: 5, orientation: 'landscape' },
+      params: { query, per_page: 30, orientation: 'landscape' },
       headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` }
     });
     const photos = res.data.results || [];
-    const photo = photos[Math.floor(Math.random() * photos.length)];
+    const available = photos.filter(p => !usedImageUrls.has(p.urls.regular));
+    const photo = available.length > 0
+      ? available[Math.floor(Math.random() * available.length)]
+      : photos[Math.floor(Math.random() * photos.length)]; // fallback
     if (!photo) return null;
     return { url: photo.urls.regular, credit: `Photo by ${photo.user.name} on Unsplash`, link: photo.links.html };
   } catch (e) {
@@ -348,19 +357,23 @@ async function main() {
   const research = await researchTopic(cityKo, topic);
   console.log(`Research data: ${research.data.length} chars`);
 
-  // 4. 글 생성 + 이미지 동시 처리
+  // 4. 기존 이미지 URL 수집 (중복 방지)
+  const usedImageUrls = new Set(existingPosts.map(p => p.imageUrl).filter(Boolean));
+  console.log(`Used images: ${usedImageUrls.size}`);
+
+  // 5. 글 생성 + 이미지 동시 처리
   console.log('Generating content...');
   const [content, image] = await Promise.all([
     generateContent(category, topic, research),
-    getUnsplashImage(category, topic.type),
+    getUnsplashImage(category, topic.type, usedImageUrls),
   ]);
   console.log('Generated title:', content.title);
 
-  // 5. 메타 정보 생성
+  // 6. 메타 정보 생성
   console.log('Generating meta...');
   const meta = await generateMeta(content.title, content.content, cityKo, topic.keyword);
 
-  // 6. 포스트 발행
+  // 7. 포스트 발행
   if (image) console.log('Image:', image.url);
   const post = await createPost(content, category, image, meta);
   console.log(`Post created: ID ${post.data?.id}`);
