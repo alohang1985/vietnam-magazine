@@ -26,9 +26,15 @@ function formatDate(dateStr: string) {
 export default async function Home() {
   let posts: any[] = []
   try {
-    const res = await fetch(`${CMS_URL}/api/posts?populate=*&pagination[limit]=100&sort[0]=published_at:desc`, { cache: 'no-store' })
+    const res = await fetch(`${CMS_URL}/api/posts?populate=*&pagination[pageSize]=100`, { cache: 'no-store' })
     const json = await res.json()
-    posts = json.data || []
+    const rawPosts = json.data || []
+    // published_at 기준으로 최신순 정렬 (프론트에서 확실하게)
+    posts = rawPosts.sort((a: any, b: any) => {
+      const dateA = a.attributes.published_at || a.attributes.createdAt || ''
+      const dateB = b.attributes.published_at || b.attributes.createdAt || ''
+      return new Date(dateB).getTime() - new Date(dateA).getTime()
+    })
   } catch {
     posts = []
   }
