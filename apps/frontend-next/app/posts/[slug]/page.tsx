@@ -1,108 +1,198 @@
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 import React from 'react'
 import Image from 'next/image'
-import ReactMarkdown from 'react-markdown'
+import type { Metadata } from 'next'
+import { marked } from 'marked'
+
+function renderContent(content: string): string {
+  if (!content) return ''
+  const trimmed = content.trim()
+  // Already HTML
+  if (trimmed.startsWith('<')) return trimmed
+  // Markdown → HTML
+  return marked.parse(trimmed) as string
+}
 
 const CMS_URL = process.env.NEXT_PUBLIC_CMS_URL || 'http://localhost:1337'
-const unsplash = {
-  'phu-quoc': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200',
-  'nha-trang': 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=1200',
-  'da-nang': 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=1200',
-  'ho-chi-minh': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1200',
-  'hanoi': 'https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?w=1200',
-  'ha-long': 'https://images.unsplash.com/photo-1528127269322-539801943592?w=1200',
-  'dalat': 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=1200',
-  'hoi-an': 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=1200',
-  'sapa': 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=1200',
-  'mui-ne': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vietnam-magazine.vercel.app'
+
+async function getPost(slug: string) {
+  try {
+    const res = await fetch(
+      `${CMS_URL}/api/posts?filters[slug][$eq]=${slug}&populate=*&pagination[limit]=1`,
+      { cache: 'no-store' }
+    )
+    const json = await res.json()
+    return json.data?.[0] ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const p = await getPost(params.slug)
+  if (!p) return { title: 'Vietnam Travel Magazine' }
+  const attr = p.attributes
+  const title = attr.meta_title || attr.title || 'Vietnam Travel Magazine'
+  const description = attr.meta_description || attr.summary_5lines || '베트남 여행 가이드'
+  const ogImage = attr.hero_image?.url
+  const url = `${SITE_URL}/posts/${params.slug}`
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'article',
+      ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: title }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+    alternates: { canonical: url },
+  }
 }
 
 export default async function PostPage({ params }: { params: { slug: string } }) {
-  const slug = params.slug
-  let p = null
-  try {
-    const res = await fetch(`${CMS_URL}/api/posts?filters[slug][$eq]=${encodeURIComponent(slug)}&populate=*&pagination[limit]=1`, { cache: 'no-store' })
-    if (!res.ok) throw new Error('Bad response')
-    const json = await res.json()
-    p = json.data && json.data[0]
-  } catch (e) { p = null }
-  if (!p) return <div className="not-found">게시물을 찾을 수 없습니다.</div>
+  const p = await getPost(params.slug)
+  if (!p) return <div className="py-12 text-center text-gray-500">게시물을 찾을 수 없습니다.</div>
   const attr = p.attributes
-  const img = attr.hero_image?.url || unsplash[attr.category] || unsplash['phu-quoc']
 
-  const content = attr.article_markdown || ''
-  const creditMatch = content.match(/\*\[Photo by .+? on Unsplash\]\(.+?\)\*/)
-  const creditLine = creditMatch ? creditMatch[0] : null
-  const cleanContent = content.replace(/!\[.*?\]\(.*?\) \*\[Photo by .+? on Unsplash\]\(.+?\)\* /, '')
-
-  // Server-side fetch 2 images from Unsplash (uses UNSPLASH_ACCESS_KEY env var)
-  let unsplashImgs: { url: string; credit: string }[] = [];
-  try {
-    const UNSPLASH_KEY = process.env.UNSPLASH_ACCESS_KEY;
-    if (UNSPLASH_KEY) {
-      const q = encodeURIComponent(`${attr.category} vietnam`);
-      const ures = await fetch(`https://api.unsplash.com/search/photos?query=${q}&per_page=2&orientation=landscape`, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` }, cache: 'no-store' });
-      if (ures.ok) {
-        const uj = await ures.json();
-        unsplashImgs = (uj.results || []).slice(0,2).map((r: any) => ({ url: (r.urls && r.urls.regular) || r.url, credit: `Photo by ${r.user && r.user.name} on Unsplash` }));
-      }
-    }
-  } catch (e) { console.error('Unsplash fetch error', e.message); }
-
-  // Inject images into content: after first paragraph
-  let renderedContent = cleanContent;
-  if (unsplashImgs.length) {
-    const parts = cleanContent.split('\n\n');
-    if (parts.length > 1) {
-      parts.splice(1, 0, unsplashImgs.map(i => `![](${i.url})`).join('\n\n'))
-      renderedContent = parts.join('\n\n')
-    } else {
-      renderedContent = cleanContent + '\n\n' + unsplashImgs.map(i => `![](${i.url})`).join('\n\n')
-    }
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: attr.title,
+    description: attr.meta_description || attr.summary_5lines || '',
+    datePublished: attr.publishedAt || attr.createdAt,
+    dateModified: attr.updatedAt || attr.publishedAt,
+    url: `${SITE_URL}/posts/${params.slug}`,
+    author: { '@type': 'Organization', name: 'Vietnam Travel Magazine' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Vietnam Travel Magazine',
+      url: SITE_URL,
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/posts/${params.slug}` },
+    ...(attr.hero_image?.url ? { image: attr.hero_image.url } : {}),
   }
 
   return (
-    <article style={{background:'#fff',minHeight:'100vh',color:'#1a1a2e',fontFamily:'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial'}}>
-      <div style={{width:'100%',height:500,overflow:'hidden'}}>
-        <Image src={img} alt={attr.title} width={1600} height={500} style={{objectFit:'cover',width:'100%',height:'500px'}} />
-      </div>
-
-      <div style={{maxWidth:920,margin:'-60px auto 0',padding:'0 18px'}}>
-        <div style={{background:'#fff',padding:24,borderRadius:12,boxShadow:'0 8px 24px rgba(26,26,46,0.08)'}}>
-          <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:12}}>
-            <div style={{background:'#2a9d8f',color:'#fff',padding:'6px 10px',borderRadius:999,fontWeight:700,fontSize:12}}>{attr.category}</div>
-            <div style={{color:'#666',fontSize:13}}>{attr.published_at ? new Date(attr.published_at).toLocaleDateString('ko-KR') : ''}</div>
+    <article>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <div className="w-full h-[60vh] relative mb-6">
+        {attr.hero_image?.url ? (
+          <Image src={attr.hero_image.url} alt={attr.title} fill style={{ objectFit: 'cover' }} priority />
+        ) : (
+          <div className="w-full h-full bg-gray-200" />
+        )}
+        <div className="absolute inset-0 hero-gradient flex items-end p-8">
+          <div>
+            <div className="bg-black/40 text-white inline-block px-3 py-1 rounded">{attr.category}</div>
+            <h1 className="text-4xl font-serif text-white mt-3">{attr.title}</h1>
           </div>
-          <h1 style={{fontSize:40,fontWeight:900,color:'#1a1a2e',margin:'6px 0 18px'}}>{attr.title}</h1>
-
-          <div className="prose-area" style={{background:'#fff',color:'#222',padding:'12px',borderRadius:8}}>
-            <section style={{maxWidth:720,margin:'0 auto',fontSize:18,lineHeight:1.9,color:'#333'}}>
-              <ReactMarkdown components={{
-                h2: ({children}) => <h2 style={{fontSize:22,fontWeight:700,color:'#2a9d8f',borderLeft:'4px solid #2a9d8f',paddingLeft:12,margin:'32px 0 16px'}}>{children}</h2>,
-                h3: ({children}) => <h3 style={{fontSize:18,fontWeight:700,margin:'24px 0 12px'}}>{children}</h3>,
-                p: ({children}) => <p style={{marginBottom:20,lineHeight:1.9}}>{children}</p>,
-                strong: ({children}) => <strong style={{color:'#1a1a2e',fontWeight:800}}>{children}</strong>,
-                ul: ({children}) => <ul style={{paddingLeft:24,marginBottom:20}}>{children}</ul>,
-                li: ({children}) => <li style={{marginBottom:8,lineHeight:1.8}}>{children}</li>,
-                img: ({src, alt}) => <img src={src} alt={alt} style={{width:'100%',borderRadius:16,margin:'24px 0',objectFit:'cover'}} />,
-                a: ({href, children}) => <a href={href} style={{color:'#1a1a2e',textDecoration:'underline'}} target="_blank" rel="noopener noreferrer">{children}</a>,
-              }} >{renderedContent}</ReactMarkdown>
-            </section>
-          </div>
-
-          <div style={{marginTop:18,textAlign:'right'}}>
-            <a href="/" style={{color:'#1a1a2e',textDecoration:'underline'}}>다른 여행지 보기</a>
-          </div>
-
-          {creditLine && (
-            <p style={{fontSize:11,color:'#bbb',marginTop:24,textAlign:'right'}}>
-              <ReactMarkdown>{creditLine}</ReactMarkdown>
-            </p>
-          )}
         </div>
       </div>
 
+      <div className="bg-cream-bg dark:bg-gray-800 p-4 rounded mb-6">
+        <p className="text-sm">{attr.summary_5lines}</p>
+      </div>
+
+      <nav className="mb-6">
+        <ul className="flex gap-3 text-sm flex-wrap">
+          {attr.outline && attr.outline.map((o: string, i: number) => (
+            <li key={i}><a href={`#section-${i}`} className="text-travel-green hover:underline">{o}</a></li>
+          ))}
+        </ul>
+      </nav>
+
+      <section className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-serif prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-img:rounded-lg prose-a:text-travel-green">
+        <div dangerouslySetInnerHTML={{ __html: renderContent(attr.article_markdown || '') }} />
+      </section>
+
+      {(attr.itinerary_blocks?.half_day || attr.itinerary_blocks?.one_day || attr.itinerary_blocks?.two_day) && (
+        <section className="mt-8">
+          <h2 className="text-2xl font-serif mb-4">추천 일정</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {attr.itinerary_blocks?.half_day && (
+              <div className="card p-4">
+                <h3 className="font-semibold">반나절</h3>
+                <p className="text-sm mt-2">{attr.itinerary_blocks.half_day}</p>
+              </div>
+            )}
+            {attr.itinerary_blocks?.one_day && (
+              <div className="card p-4">
+                <h3 className="font-semibold">1일</h3>
+                <p className="text-sm mt-2">{attr.itinerary_blocks.one_day}</p>
+              </div>
+            )}
+            {attr.itinerary_blocks?.two_day && (
+              <div className="card p-4">
+                <h3 className="font-semibold">2일</h3>
+                <p className="text-sm mt-2">{attr.itinerary_blocks.two_day}</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      <section className="mt-8">
+        <h2 className="text-2xl font-serif mb-4">예산 비교</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left p-2"></th>
+                <th className="p-2">저</th>
+                <th className="p-2">중</th>
+                <th className="p-2">고</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { label: '숙소', key: 'accommodation' },
+                { label: '식비', key: 'food' },
+                { label: '교통', key: 'transport' },
+                { label: '액티비티', key: 'activity' },
+              ].map(row => (
+                <tr key={row.key} className="border-t">
+                  <td className="p-2 font-medium">{row.label}</td>
+                  <td className="p-2 text-center">{(attr.budget_table?.low as any)?.[row.key] || '-'}</td>
+                  <td className="p-2 text-center">{(attr.budget_table?.mid as any)?.[row.key] || '-'}</td>
+                  <td className="p-2 text-center">{(attr.budget_table?.high as any)?.[row.key] || '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {attr.faq && attr.faq.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-2xl font-serif mb-4">FAQ</h2>
+          <div>
+            {attr.faq.map((f: any, i: number) => (
+              <details key={i} className="mb-2 border rounded p-3">
+                <summary className="font-medium cursor-pointer">{f.q}</summary>
+                <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">{f.a}</div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {attr.sources && attr.sources.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-2xl font-serif mb-4">참고 출처</h2>
+          <ul className="text-sm list-disc pl-6">
+            {attr.sources.map((s: any, i: number) => (
+              <li key={i}><a href={s.url} target="_blank" rel="noopener noreferrer" className="text-travel-green hover:underline">{s.title}</a></li>
+            ))}
+          </ul>
+        </section>
+      )}
     </article>
   )
 }
