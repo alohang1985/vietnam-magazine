@@ -21,36 +21,36 @@ const categoryNamesEn = {
 };
 
 const topics = [
-  { keyword: '맛집 추천', type: 'food', searchQuery: '맛집 추천 현지인 로컬 2025 2026' },
-  { keyword: '길거리 음식', type: 'food', searchQuery: '길거리 음식 꼭 먹어봐야 할 추천' },
-  { keyword: '카페 추천', type: 'cafe', searchQuery: '카페 추천 분위기 좋은 인스타' },
-  { keyword: '루프탑 바', type: 'travel', searchQuery: '루프탑 바 야경 추천' },
-  { keyword: '해산물 맛집', type: 'food', searchQuery: '해산물 맛집 가격 싼 곳' },
-  { keyword: '쌀국수 맛집', type: 'food', searchQuery: '쌀국수 맛집 현지인 추천' },
-  { keyword: '반미 맛집', type: 'food', searchQuery: '반미 맛집 추천 현지' },
-  { keyword: '여행코스 3박4일', type: 'travel', searchQuery: '여행코스 3박4일 일정 추천' },
-  { keyword: '여행코스 4박5일', type: 'travel', searchQuery: '여행코스 4박5일 일정 추천' },
-  { keyword: '가볼만한곳', type: 'travel', searchQuery: '가볼만한곳 관광지 추천' },
-  { keyword: '호텔 추천', type: 'hotel', searchQuery: '호텔 추천 가성비 2025 2026' },
-  { keyword: '리조트 추천', type: 'hotel', searchQuery: '리조트 추천 풀빌라 럭셔리' },
-  { keyword: '여행 경비', type: 'travel', searchQuery: '여행 경비 비용 물가 총정리' },
-  { keyword: '야시장 추천', type: 'travel', searchQuery: '야시장 추천 먹거리 쇼핑' },
-  { keyword: '마사지 스파', type: 'travel', searchQuery: '마사지 스파 가성비 추천' },
-  { keyword: '쇼핑 추천', type: 'travel', searchQuery: '쇼핑 기념품 시장 추천' },
-  { keyword: '혼자 여행', type: 'travel', searchQuery: '혼자 여행 자유여행 가이드' },
-  { keyword: '가족 여행', type: 'travel', searchQuery: '가족 여행 아이와 함께 코스' },
-  { keyword: '커플 여행', type: 'travel', searchQuery: '커플 여행 데이트 코스' },
-  { keyword: '교통 가이드', type: 'travel', searchQuery: '택시 그랩 교통 이용법 팁' },
-  { keyword: '가성비 숙소', type: 'hotel', searchQuery: '숙소 가성비 저렴한 게스트하우스' },
-  { keyword: '일출 일몰 명소', type: 'travel', searchQuery: '일출 일몰 명소 포토스팟' },
-  { keyword: '우기 여행 팁', type: 'travel', searchQuery: '우기 여행 비 대비 시기' },
-  { keyword: '다이빙 스노클링', type: 'travel', searchQuery: '다이빙 스노클링 체험 추천' },
-  { keyword: '쿠킹클래스', type: 'travel', searchQuery: '쿠킹클래스 요리 체험 추천' },
-  { keyword: '환전 팁', type: 'travel', searchQuery: '환전 현금 팁 어디서' },
-  { keyword: '유심 와이파이', type: 'travel', searchQuery: '유심 이심 와이파이 추천 가격' },
-  { keyword: '여행 준비물', type: 'travel', searchQuery: '여행 준비물 필수 체크리스트' },
-  { keyword: '비치 해변 추천', type: 'travel', searchQuery: '비치 해변 추천 예쁜 바다' },
-  { keyword: '로컬 시장 투어', type: 'travel', searchQuery: '재래시장 로컬 시장 투어' },
+  { keyword: '맛집 추천', slug: 'restaurant', type: 'food', searchQuery: '맛집 추천 현지인 로컬 2025 2026' },
+  { keyword: '길거리 음식', slug: 'street-food', type: 'food', searchQuery: '길거리 음식 꼭 먹어봐야 할 추천' },
+  { keyword: '카페 추천', slug: 'cafe', type: 'cafe', searchQuery: '카페 추천 분위기 좋은 인스타' },
+  { keyword: '루프탑 바', slug: 'rooftop-bar', type: 'travel', searchQuery: '루프탑 바 야경 추천' },
+  { keyword: '해산물 맛집', slug: 'seafood', type: 'food', searchQuery: '해산물 맛집 가격 싼 곳' },
+  { keyword: '쌀국수 맛집', slug: 'pho', type: 'food', searchQuery: '쌀국수 맛집 현지인 추천' },
+  { keyword: '반미 맛집', slug: 'banh-mi', type: 'food', searchQuery: '반미 맛집 추천 현지' },
+  { keyword: '여행코스 3박4일', slug: 'itinerary-3d4n', type: 'travel', searchQuery: '여행코스 3박4일 일정 추천' },
+  { keyword: '여행코스 4박5일', slug: 'itinerary-4d5n', type: 'travel', searchQuery: '여행코스 4박5일 일정 추천' },
+  { keyword: '가볼만한곳', slug: 'attractions', type: 'travel', searchQuery: '가볼만한곳 관광지 추천' },
+  { keyword: '호텔 추천', slug: 'hotel', type: 'hotel', searchQuery: '호텔 추천 가성비 2025 2026' },
+  { keyword: '리조트 추천', slug: 'resort', type: 'hotel', searchQuery: '리조트 추천 풀빌라 럭셔리' },
+  { keyword: '여행 경비', slug: 'budget', type: 'travel', searchQuery: '여행 경비 비용 물가 총정리' },
+  { keyword: '야시장 추천', slug: 'night-market', type: 'travel', searchQuery: '야시장 추천 먹거리 쇼핑' },
+  { keyword: '마사지 스파', slug: 'massage-spa', type: 'travel', searchQuery: '마사지 스파 가성비 추천' },
+  { keyword: '쇼핑 추천', slug: 'shopping', type: 'travel', searchQuery: '쇼핑 기념품 시장 추천' },
+  { keyword: '혼자 여행', slug: 'solo-travel', type: 'travel', searchQuery: '혼자 여행 자유여행 가이드' },
+  { keyword: '가족 여행', slug: 'family-travel', type: 'travel', searchQuery: '가족 여행 아이와 함께 코스' },
+  { keyword: '커플 여행', slug: 'couple-travel', type: 'travel', searchQuery: '커플 여행 데이트 코스' },
+  { keyword: '교통 가이드', slug: 'transport', type: 'travel', searchQuery: '택시 그랩 교통 이용법 팁' },
+  { keyword: '가성비 숙소', slug: 'budget-stay', type: 'hotel', searchQuery: '숙소 가성비 저렴한 게스트하우스' },
+  { keyword: '일출 일몰 명소', slug: 'sunrise-sunset', type: 'travel', searchQuery: '일출 일몰 명소 포토스팟' },
+  { keyword: '우기 여행 팁', slug: 'rainy-season', type: 'travel', searchQuery: '우기 여행 비 대비 시기' },
+  { keyword: '다이빙 스노클링', slug: 'diving-snorkeling', type: 'travel', searchQuery: '다이빙 스노클링 체험 추천' },
+  { keyword: '쿠킹클래스', slug: 'cooking-class', type: 'travel', searchQuery: '쿠킹클래스 요리 체험 추천' },
+  { keyword: '환전 팁', slug: 'currency-exchange', type: 'travel', searchQuery: '환전 현금 팁 어디서' },
+  { keyword: '유심 와이파이', slug: 'sim-wifi', type: 'travel', searchQuery: '유심 이심 와이파이 추천 가격' },
+  { keyword: '여행 준비물', slug: 'packing-list', type: 'travel', searchQuery: '여행 준비물 필수 체크리스트' },
+  { keyword: '비치 해변 추천', slug: 'beach', type: 'travel', searchQuery: '비치 해변 추천 예쁜 바다' },
+  { keyword: '로컬 시장 투어', slug: 'local-market', type: 'travel', searchQuery: '재래시장 로컬 시장 투어' },
 ];
 
 const unsplashTypeMap = { food: 'food restaurant', cafe: 'cafe coffee', hotel: 'hotel resort', travel: 'travel landscape' };
@@ -167,7 +167,9 @@ JSON이나 코드블록 없이, 자연스러운 텍스트로 정리해주세요.
       console.log('Sources:', sources.slice(0, 5).join(', '));
     }
 
-    return { data: researchData, sources };
+    // 리서치 데이터가 너무 길면 앞부분만 사용 (토큰 절약)
+    const trimmedData = researchData.length > 15000 ? researchData.substring(0, 15000) + '\n\n...(이하 생략)' : researchData;
+    return { data: trimmedData, sources };
   } catch (e) {
     console.warn('Research with Google Search failed:', e.response?.data?.error?.message || e.message);
     // fallback: Google Search 없이 Gemini 지식만 사용
@@ -252,7 +254,7 @@ ${research.sources.length > 0 ? `[참고한 출처]\n${research.sources.slice(0,
   ];
   const title = titleTemplates[Math.floor(Math.random() * titleTemplates.length)];
 
-  const slug = `${category}-${topic.keyword.replace(/\s+/g, '-')}-${Date.now()}`;
+  const slug = `${category}-${topic.slug}-${Date.now()}`;
 
   return { title, slug, content: raw };
 }
